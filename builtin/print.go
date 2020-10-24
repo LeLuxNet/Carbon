@@ -2,16 +2,18 @@ package builtin
 
 import (
 	"fmt"
+	"github.com/leluxnet/carbon/ast"
+	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/typing"
 	"strings"
 )
 
-var _ typing.Callable = Print{}
+var _ ast.Callable = Print{}
 
 type Print struct{}
 
-func (o Print) Data() typing.ParamData {
-	return typing.ParamData{
+func (o Print) Data() ast.ParamData {
+	return ast.ParamData{
 		Args: "args",
 	}
 }
@@ -21,12 +23,12 @@ func (o Print) ToString() string {
 }
 
 func (o Print) Class() typing.Class {
-	return typing.Class{Name: "print"}
+	return typing.Class{Name: "function<print>"}
 }
 
-func (o Print) Call(args []typing.Object) typing.Object {
+func (o Print) Call(args []typing.Object) throw.Throwable {
 	if len(args) == 0 {
-		return typing.Null{}
+		return nil
 	}
 
 	var builder strings.Builder
@@ -38,5 +40,5 @@ func (o Print) Call(args []typing.Object) typing.Object {
 	}
 
 	fmt.Println(builder.String())
-	return typing.Null{}
+	return nil
 }

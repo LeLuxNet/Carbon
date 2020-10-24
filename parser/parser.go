@@ -52,6 +52,8 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 		res, err = p.doWhileStmt()
 	} else if p.match(token.Fun) {
 		return p.funStmt()
+	} else if p.match(token.Return) {
+		res, err = p.returnStmt()
 	} else if p.match(token.LeftBrace) {
 		return p.blockStmt()
 	} else {
@@ -221,7 +223,7 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	var params []typing.Parameter
+	var params []ast.Parameter
 	if p.Position < len(p.Tokens) &&
 		p.Tokens[p.Position].Type != token.RightParen {
 		for {
@@ -229,7 +231,7 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 			if err != nil {
 				return nil, err
 			}
-			params = append(params, typing.Parameter{Name: p.previous().Literal})
+			params = append(params, ast.Parameter{Name: p.previous().Literal})
 
 			if !p.match(token.Comma) {
 				break
@@ -249,9 +251,18 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 
 	return ast.FunStmt{
 		Name: name,
-		Data: typing.ParamData{Params: params},
+		Data: ast.ParamData{Params: params},
 		Body: body,
 	}, nil
+}
+
+func (p *Parser) returnStmt() (ast.Statement, *errors.SyntaxError) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ReturnStmt{Expr: expr}, nil
 }
 
 func (p *Parser) blockStmt() (ast.Statement, *errors.SyntaxError) {

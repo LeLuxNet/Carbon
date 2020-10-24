@@ -19,7 +19,3 @@ func (o Error) Class() Class {
 func (o Error) Error() string {
 	return o.Message
 }
-
-func NewError(msg string) Error {
-	return Error{Message: msg}
-}
