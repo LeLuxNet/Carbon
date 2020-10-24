@@ -77,4 +77,6 @@ const (
 	While
 	For
 	Return
+	Break
+	Continue
 )

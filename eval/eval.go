@@ -36,6 +36,10 @@ func EvalStmt(stmt ast.Statement, e *env.Env) throw.Throwable {
 		return evalFun(stmt, e)
 	case ast.ReturnStmt:
 		return evalReturn(stmt, e)
+	case ast.BreakStmt:
+		return throw.Break{}
+	case ast.ContinueStmt:
+		return throw.Continue{}
 	case ast.BlockStmt:
 		return evalBlock(stmt, e)
 	case ast.ExpressionStmt:
@@ -114,14 +118,30 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
 			break
 		}
 
-		EvalStmt(expr.Body, e)
+		err = EvalStmt(expr.Body, e)
+		if err != nil {
+			if _, ok := err.(throw.Break); ok {
+				return nil
+			} else if _, ok := err.(throw.Continue); ok {
+				continue
+			}
+			return err
+		}
 	}
 	return nil
 }
 
 func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) throw.Throwable {
 	for true {
-		EvalStmt(expr.Body, e)
+		err := EvalStmt(expr.Body, e)
+		if err != nil {
+			if _, ok := err.(throw.Break); ok {
+				return nil
+			} else if _, ok := err.(throw.Continue); ok {
+				continue
+			}
+			return err
+		}
 
 		condition, err := evalExpression(expr.Condition, e)
 		if err != nil {

@@ -45,6 +45,10 @@ type ReturnStmt struct {
 	Expr Expression
 }
 
+type BreakStmt struct{}
+
+type ContinueStmt struct{}
+
 type BlockStmt struct {
 	Body []Statement
 }
@@ -61,5 +65,7 @@ func (s WhileStmt) astStatement()      {}
 func (s DoWhileStmt) astStatement()    {}
 func (s FunStmt) astStatement()        {}
 func (s ReturnStmt) astStatement()     {}
+func (s BreakStmt) astStatement()      {}
+func (s ContinueStmt) astStatement()   {}
 func (s BlockStmt) astStatement()      {}
 func (s ExpressionStmt) astStatement() {}

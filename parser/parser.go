@@ -54,6 +54,10 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 		return p.funStmt()
 	} else if p.match(token.Return) {
 		res, err = p.returnStmt()
+	} else if p.match(token.Break) {
+		res = ast.BreakStmt{}
+	} else if p.match(token.Continue) {
+		res = ast.ContinueStmt{}
 	} else if p.match(token.LeftBrace) {
 		return p.blockStmt()
 	} else {

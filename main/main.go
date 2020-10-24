@@ -56,7 +56,7 @@ func run(source string) int {
 
 	err := eval.Eval(stmts, e)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, err.TData())
 	}
 
 	return 0
