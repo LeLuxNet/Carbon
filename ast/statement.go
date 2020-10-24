@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/leluxnet/carbon/typing"
+
 type Statement interface {
 	astStatement()
 }
@@ -35,6 +37,12 @@ type DoWhileStmt struct {
 	Body      Statement
 }
 
+type FunStmt struct {
+	Name string
+	Data typing.ParamData
+	Body Statement
+}
+
 type BlockStmt struct {
 	Body []Statement
 }
@@ -50,4 +58,5 @@ func (s IfStmt) astStatement()         {}
 func (s WhileStmt) astStatement()      {}
 func (s DoWhileStmt) astStatement()    {}
 func (s BlockStmt) astStatement()      {}
+func (s FunStmt) astStatement()        {}
 func (s ExpressionStmt) astStatement() {}

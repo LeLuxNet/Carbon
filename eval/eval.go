@@ -9,7 +9,7 @@ import (
 
 func Eval(stmts []ast.Statement, e *env.Env) typing.Object {
 	for _, stmt := range stmts {
-		err := evalStmt(stmt, e)
+		err := EvalStmt(stmt, e)
 		if err != nil {
 			return err
 		}
@@ -17,7 +17,7 @@ func Eval(stmts []ast.Statement, e *env.Env) typing.Object {
 	return nil
 }
 
-func evalStmt(stmt ast.Statement, e *env.Env) typing.Object {
+func EvalStmt(stmt ast.Statement, e *env.Env) typing.Object {
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
 		return evalVar(stmt, e)
@@ -31,6 +31,8 @@ func evalStmt(stmt ast.Statement, e *env.Env) typing.Object {
 		return evalWhile(stmt, e)
 	case ast.DoWhileStmt:
 		return evalDoWhile(stmt, e)
+	case ast.FunStmt:
+		return evalFun(stmt, e)
 	case ast.BlockStmt:
 		return evalBlock(stmt, e)
 	case ast.ExpressionStmt:
@@ -93,9 +95,9 @@ func evalIf(expr ast.IfStmt, e *env.Env) typing.Object {
 	}
 
 	if typing.Truthy(condition) {
-		return evalStmt(expr.Then, e)
+		return EvalStmt(expr.Then, e)
 	} else if expr.Else != nil {
-		return evalStmt(expr.Else, e)
+		return EvalStmt(expr.Else, e)
 	}
 	return nil
 }
@@ -109,14 +111,14 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Object {
 			break
 		}
 
-		evalStmt(expr.Body, e)
+		EvalStmt(expr.Body, e)
 	}
 	return nil
 }
 
 func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Object {
 	for true {
-		evalStmt(expr.Body, e)
+		EvalStmt(expr.Body, e)
 
 		condition, err := evalExpression(expr.Condition, e)
 		if err != nil {
@@ -128,10 +130,21 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Object {
 	return nil
 }
 
+func evalFun(expr ast.FunStmt, e *env.Env) typing.Object {
+	fun := Function{
+		Name:  expr.Name,
+		PData: expr.Data,
+		Stmt:  expr.Body,
+		Env:   e,
+	}
+
+	return e.Define(expr.Name, fun, nil, false, true)
+}
+
 func evalBlock(expr ast.BlockStmt, e *env.Env) typing.Object {
 	scope := env.NewEnclosedEnv(e)
 	for _, stmt := range expr.Body {
-		err := evalStmt(stmt, scope)
+		err := EvalStmt(stmt, scope)
 		if err != nil {
 			return err
 		}

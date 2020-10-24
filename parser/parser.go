@@ -50,6 +50,8 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 		return p.whileStmt()
 	} else if p.match(token.Do) {
 		res, err = p.doWhileStmt()
+	} else if p.match(token.Fun) {
+		return p.funStmt()
 	} else if p.match(token.LeftBrace) {
 		return p.blockStmt()
 	} else {
@@ -205,6 +207,51 @@ func (p *Parser) doWhileStmt() (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.WhileStmt{Condition: condition, Body: body}, nil
+}
+
+func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, "Expect function name")
+	if err != nil {
+		return nil, err
+	}
+	name := p.previous().Literal
+
+	err = p.consume(token.LeftParen, "Expect '(' after function name")
+	if err != nil {
+		return nil, err
+	}
+
+	var params []typing.Parameter
+	if p.Position < len(p.Tokens) &&
+		p.Tokens[p.Position].Type != token.RightParen {
+		for {
+			err = p.consume(token.Identifier, "Expect parameter name.")
+			if err != nil {
+				return nil, err
+			}
+			params = append(params, typing.Parameter{Name: p.previous().Literal})
+
+			if !p.match(token.Comma) {
+				break
+			}
+		}
+	}
+
+	err = p.consume(token.RightParen, "Expect ')' after parameters")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.FunStmt{
+		Name: name,
+		Data: typing.ParamData{Params: params},
+		Body: body,
+	}, nil
 }
 
 func (p *Parser) blockStmt() (ast.Statement, *errors.SyntaxError) {

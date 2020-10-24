@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/leluxnet/carbon/bultin"
+	"github.com/leluxnet/carbon/builtin"
 	"github.com/leluxnet/carbon/env"
 	"github.com/leluxnet/carbon/eval"
 	"github.com/leluxnet/carbon/lexer"
@@ -52,7 +52,7 @@ func run(source string) int {
 	fmt.Println(stmts)
 
 	e := env.NewEnv()
-	e.Define("print", builtin.Print{}, nil, false, false)
+	builtin.Register(e)
 
 	err := eval.Eval(stmts, e)
 	if err != nil {

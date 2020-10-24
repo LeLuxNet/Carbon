@@ -10,6 +10,12 @@ var _ typing.Callable = Print{}
 
 type Print struct{}
 
+func (o Print) Data() typing.ParamData {
+	return typing.ParamData{
+		Args: "args",
+	}
+}
+
 func (o Print) ToString() string {
 	return "print"
 }
