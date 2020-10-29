@@ -32,7 +32,7 @@ func (o Function) Call(args []typing.Object) throw.Throwable {
 }
 
 func (o Function) ToString() string {
-	return "function <" + o.Name + ">"
+	return "function<" + o.Name + ">"
 }
 
 func (o Function) Class() typing.Class {

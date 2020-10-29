@@ -16,7 +16,7 @@ func Truthy(object Object) bool {
 	}
 }
 
-func Eq(a Object, b Object) bool {
+func Eq(a, b Object) bool {
 	switch a := a.(type) {
 	case Null:
 		// Other objects can not implement eq to null
@@ -58,4 +58,60 @@ func Eq(a Object, b Object) bool {
 		}
 	}
 	return false
+}
+
+func Add(a, b Object) Object {
+	if a, ok := a.(Addable); ok {
+		res := a.Add(b, true)
+		if res != nil {
+			return res
+		}
+	}
+	if b, ok := b.(Addable); ok {
+		res := b.Add(a, false)
+		return res
+	}
+	return nil
+}
+
+func Sub(a, b Object) Object {
+	if a, ok := a.(Subable); ok {
+		res := a.Sub(b, true)
+		if res != nil {
+			return res
+		}
+	}
+	if b, ok := b.(Subable); ok {
+		res := b.Sub(a, false)
+		return res
+	}
+	return nil
+}
+
+func Mult(a, b Object) Object {
+	if a, ok := a.(Multable); ok {
+		res := a.Mult(b, true)
+		if res != nil {
+			return res
+		}
+	}
+	if b, ok := b.(Multable); ok {
+		res := b.Mult(a, false)
+		return res
+	}
+	return nil
+}
+
+func Div(a, b Object) Object {
+	if a, ok := a.(Divable); ok {
+		res := a.Div(b, true)
+		if res != nil {
+			return res
+		}
+	}
+	if b, ok := b.(Divable); ok {
+		res := b.Div(a, false)
+		return res
+	}
+	return nil
 }

@@ -243,10 +243,18 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, throw.Thr
 		return nil, err
 	}
 
-	if expr.Type == token.EqualEqual {
+	switch expr.Type {
+	case token.EqualEqual:
 		return typing.Bool{Value: typing.Eq(left, right)}, nil
+	case token.Plus:
+		return typing.Add(left, right), nil
+	case token.Minus:
+		return typing.Sub(left, right), nil
+	case token.Asterisk:
+		return typing.Mult(left, right), nil
+	case token.Slash:
+		return typing.Div(left, right), nil
 	}
 
-	// TODO: Calc binary
 	return nil, throw.NewError("Not implemented")
 }
