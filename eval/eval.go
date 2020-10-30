@@ -230,12 +230,17 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, throw.Throwab
 }
 
 func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, throw.Throwable) {
-	_, err := evalExpression(expr.Right, e)
+	right, err := evalExpression(expr.Right, e)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Calc unary
+	switch expr.Type {
+	case token.Minus:
+		if right, ok := right.(typing.Negable); ok {
+			return right.Neg(), nil
+		}
+	}
 	return nil, throw.NewError("Not implemented")
 }
 

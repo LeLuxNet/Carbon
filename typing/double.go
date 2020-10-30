@@ -93,3 +93,7 @@ func (o Double) Div(other Object, first bool) Object {
 	}
 	return nil
 }
+
+func (o Double) Neg() Object {
+	return Double{-o.Value}
+}

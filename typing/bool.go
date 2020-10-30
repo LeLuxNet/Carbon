@@ -26,6 +26,16 @@ func (o Bool) ToInt() int {
 	return i
 }
 
+func (o Bool) Neg() Object {
+	var i int
+	if o.Value {
+		i = -1
+	} else {
+		i = 0
+	}
+	return Int{i}
+}
+
 func (o Bool) Add(other Object, _ bool) Object {
 	switch other := other.(type) {
 	case Bool:

@@ -15,3 +15,7 @@ type Multable interface {
 type Divable interface {
 	Div(Object, bool) Object
 }
+
+type Negable interface {
+	Neg() Object
+}
