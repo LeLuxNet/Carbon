@@ -209,7 +209,14 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, throw.Throwab
 	}
 
 	data := fun.Data()
-	if len(args) < len(data.Params) {
+	minArgs := 0
+	for _, arg := range data.Params {
+		if arg.Default == nil {
+			minArgs++
+		}
+	}
+
+	if len(args) < minArgs {
 		return nil, throw.NewError("More args needed")
 	} else if len(args) > len(data.Params) && data.Args == "" {
 		return nil, throw.NewError("Less args needed")

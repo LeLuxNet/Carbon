@@ -1,6 +1,9 @@
 package typing
 
-import "strconv"
+import (
+	"math"
+	"strconv"
+)
 
 var _ Object = Double{}
 
@@ -9,6 +12,11 @@ type Double struct {
 }
 
 func (o Double) ToString() string {
+	if math.IsInf(o.Value, 1) {
+		return "Infinity"
+	} else if math.IsInf(o.Value, -1) {
+		return "-Infinity"
+	}
 	return strconv.FormatFloat(o.Value, 'f', -1, 64)
 }
 
