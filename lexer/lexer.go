@@ -20,8 +20,12 @@ func (l *Lexer) ScanTokens() ([]token.Token, []errors.SyntaxError) {
 	var tokens []token.Token
 	var errs []errors.SyntaxError
 
+	var tok *token.Token
+	var semi bool
+	var err *errors.SyntaxError
+
 	for l.Position < len(l.Chars) {
-		tok, err := l.scanToken()
+		tok, semi, err = l.scanToken(semi)
 		if err != nil {
 			errs = append(errs, *err)
 		} else if tok.Type != token.Nothing {
@@ -29,11 +33,22 @@ func (l *Lexer) ScanTokens() ([]token.Token, []errors.SyntaxError) {
 		}
 	}
 
+	if semi {
+		tokens = append(tokens, token.Token{
+			Type:     token.Semicolon,
+			Line:     l.Line,
+			Column:   l.Column,
+			ToLine:   l.Line,
+			ToColumn: l.Column,
+		})
+	}
+
 	return tokens, errs
 }
 
-func (l *Lexer) scanToken() (*token.Token, *errors.SyntaxError) {
+func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxError) {
 	var tok token.TokenType
+	var semi bool
 
 	fromLine := l.Line
 	fromCol := l.Column
@@ -47,16 +62,22 @@ func (l *Lexer) scanToken() (*token.Token, *errors.SyntaxError) {
 		tok = token.LeftParen
 	case ')':
 		tok = token.RightParen
+		semi = true
 	case '{':
 		tok = token.LeftBrace
 	case '}':
 		tok = token.RightBrace
+	case '[':
+		tok = token.LeftBracket
+	case ']':
+		tok = token.RightBracket
+		semi = true
 	case ',':
 		tok = token.Comma
 	case '.':
 		if l.isEnd() || isDigit(l.Chars[l.Position]) {
 			num := l.number()
-			return &num, nil
+			return &num, true, nil
 		} else {
 			tok = token.Dot
 		}
@@ -160,20 +181,24 @@ func (l *Lexer) scanToken() (*token.Token, *errors.SyntaxError) {
 	case '\n':
 		l.Line++
 		l.Column = 0
+		if lastSemi {
+			return &token.Token{Type: token.Semicolon, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, false, nil
+		}
 	case '"':
-		return l.string()
+		tok, err := l.string()
+		return tok, true, err
 	default:
 		if isDigit(c) {
 			num := l.number()
-			return &num, nil
+			return &num, true, nil
 		} else if isAlpha(c) {
-			id := l.identifier()
-			return &id, nil
+			id, semi := l.identifier()
+			return &id, semi, nil
 		} else {
-			return nil, &errors.SyntaxError{Message: "Unexpected char"}
+			return nil, false, &errors.SyntaxError{Message: "Unexpected char"}
 		}
 	}
-	return &token.Token{Type: tok, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, nil
+	return &token.Token{Type: tok, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, semi, nil
 }
 
 func (l *Lexer) isNextChar(char rune) bool {
@@ -255,7 +280,7 @@ func (l *Lexer) number() token.Token {
 	return token.Token{Type: token.Int, Literal: string(l.Chars[pos:l.Position]), Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}
 }
 
-func (l *Lexer) identifier() token.Token {
+func (l *Lexer) identifier() (token.Token, bool) {
 	pos := l.Position - 1
 	col := l.Column - 1
 
@@ -266,7 +291,11 @@ func (l *Lexer) identifier() token.Token {
 
 	text := string(l.Chars[pos:l.Position])
 	if tok, ok := token.Keywords[text]; ok {
-		return token.Token{Type: tok, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}
+		var semi = false
+		if tok == token.Return || tok == token.Break || tok == token.Continue {
+			semi = true
+		}
+		return token.Token{Type: tok, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}, semi
 	}
-	return token.Token{Type: token.Identifier, Literal: text, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}
+	return token.Token{Type: token.Identifier, Literal: text, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}, true
 }
