@@ -195,7 +195,7 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 			id, semi := l.identifier()
 			return &id, semi, nil
 		} else {
-			return nil, false, &errors.SyntaxError{Message: "Unexpected char"}
+			return nil, false, &errors.SyntaxError{Message: "Unexpected char", Line: l.Line, Column: l.Column - 1}
 		}
 	}
 	return &token.Token{Type: tok, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, semi, nil

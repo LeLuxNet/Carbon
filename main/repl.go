@@ -18,9 +18,6 @@ func Repl(e *env.Env) {
 		scanner.Scan()
 		text := scanner.Text()
 
-		_, res := run(text, e)
-		if res != nil {
-			fmt.Println(res.ToString())
-		}
+		run(text, e, true)
 	}
 }

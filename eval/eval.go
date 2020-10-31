@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"fmt"
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
 	"github.com/leluxnet/carbon/throw"
@@ -8,17 +9,18 @@ import (
 	"github.com/leluxnet/carbon/typing"
 )
 
-func Eval(stmts []ast.Statement, e *env.Env) throw.Throwable {
-	var res typing.Object
-	var err throw.Throwable
-
+func Eval(stmts []ast.Statement, e *env.Env, printRes bool) throw.Throwable {
 	for _, stmt := range stmts {
-		res, err = EvalStmt(stmt, e)
+		val, err := EvalStmt(stmt, e)
 		if err != nil {
 			return err
 		}
+
+		if printRes && val != nil {
+			fmt.Println(val.ToString())
+		}
 	}
-	return throw.Return{Data: res}
+	return nil
 }
 
 func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, throw.Throwable) {
