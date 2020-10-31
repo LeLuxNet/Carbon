@@ -182,7 +182,7 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		l.Line++
 		l.Column = 0
 		if lastSemi {
-			return &token.Token{Type: token.Semicolon, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, false, nil
+			tok = token.Semicolon
 		}
 	case '"':
 		tok, err := l.string()
@@ -290,12 +290,8 @@ func (l *Lexer) identifier() (token.Token, bool) {
 	}
 
 	text := string(l.Chars[pos:l.Position])
-	if tok, ok := token.Keywords[text]; ok {
-		var semi = false
-		if tok == token.Return || tok == token.Break || tok == token.Continue {
-			semi = true
-		}
-		return token.Token{Type: tok, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}, semi
+	if dat, ok := token.Keywords[text]; ok {
+		return token.Token{Type: dat.TokenType, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}, dat.Semi
 	}
 	return token.Token{Type: token.Identifier, Literal: text, Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Column}, true
 }

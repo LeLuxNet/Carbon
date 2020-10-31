@@ -117,3 +117,40 @@ func (o Bool) Div(other Object, first bool) Object {
 	}
 	return nil
 }
+
+func (o Bool) Pow(other Object, first bool) Object {
+	if first {
+		switch other := other.(type) {
+		case Bool:
+			if o.Value || !other.Value {
+				return Int{1}
+			} else {
+				return Int{0}
+			}
+		case Double:
+		case Int:
+			if o.Value || other.Value != 0 {
+				return Int{1}
+			} else {
+				return Int{0}
+			}
+		}
+	} else {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value || !o.Value {
+				return Int{1}
+			} else {
+				return Int{0}
+			}
+		case Double:
+		case Int:
+			if other.Value != 0 || !o.Value {
+				return Int{1}
+			} else {
+				return Int{0}
+			}
+		}
+	}
+	return nil
+}

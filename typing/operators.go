@@ -16,6 +16,10 @@ type Divable interface {
 	Div(Object, bool) Object
 }
 
+type Powable interface {
+	Pow(Object, bool) Object
+}
+
 type Negable interface {
 	Neg() Object
 }

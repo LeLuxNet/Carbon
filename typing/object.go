@@ -115,3 +115,17 @@ func Div(a, b Object) Object {
 	}
 	return nil
 }
+
+func Pow(a, b Object) Object {
+	if a, ok := a.(Powable); ok {
+		res := a.Pow(b, true)
+		if res != nil {
+			return res
+		}
+	}
+	if b, ok := b.(Powable); ok {
+		res := b.Pow(a, false)
+		return res
+	}
+	return nil
+}

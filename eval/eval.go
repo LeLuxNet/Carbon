@@ -272,6 +272,8 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, throw.Thr
 		return typing.Mult(left, right), nil
 	case token.Slash:
 		return typing.Div(left, right), nil
+	case token.AsteriskAsterisk:
+		return typing.Pow(left, right), nil
 	}
 
 	return nil, throw.NewError("Not implemented")

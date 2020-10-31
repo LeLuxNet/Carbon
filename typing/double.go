@@ -97,6 +97,37 @@ func (o Double) Div(other Object, first bool) Object {
 	return nil
 }
 
+func (o Double) Pow(other Object, first bool) Object {
+	if first {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value {
+				return o
+			} else {
+				return Int{1}
+			}
+		case Double:
+			return Double{math.Pow(o.Value, other.Value)}
+		case Int:
+			return Double{math.Pow(o.Value, float64(other.Value))}
+		}
+	} else {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value || o.Value == 0 {
+				return Int{1}
+			} else {
+				return Int{0}
+			}
+		case Double:
+			return Double{math.Pow(other.Value, o.Value)}
+		case Int:
+			return Double{math.Pow(float64(other.Value), o.Value)}
+		}
+	}
+	return nil
+}
+
 func (o Double) Neg() Object {
 	return Double{-o.Value}
 }
