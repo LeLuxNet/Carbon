@@ -28,7 +28,8 @@ func (o Function) Call(args []typing.Object) throw.Throwable {
 		e.Define(param.Name, args[i], &param.Type, false, false)
 	}
 
-	return EvalStmt(o.Stmt, e)
+	_, err := EvalStmt(o.Stmt, e)
+	return err
 }
 
 func (o Function) ToString() string {

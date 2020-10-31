@@ -9,44 +9,46 @@ import (
 )
 
 func Eval(stmts []ast.Statement, e *env.Env) throw.Throwable {
+	var res typing.Object
+	var err throw.Throwable
+
 	for _, stmt := range stmts {
-		err := EvalStmt(stmt, e)
+		res, err = EvalStmt(stmt, e)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+	return throw.Return{Data: res}
 }
 
-func EvalStmt(stmt ast.Statement, e *env.Env) throw.Throwable {
+func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, throw.Throwable) {
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
-		return evalVar(stmt, e)
+		return nil, evalVar(stmt, e)
 	case ast.ValStmt:
-		return evalVal(stmt, e)
+		return nil, evalVal(stmt, e)
 	case ast.AssignStmt:
-		return evalAssignment(stmt, e)
+		return nil, evalAssignment(stmt, e)
 	case ast.IfStmt:
-		return evalIf(stmt, e)
+		return nil, evalIf(stmt, e)
 	case ast.WhileStmt:
-		return evalWhile(stmt, e)
+		return nil, evalWhile(stmt, e)
 	case ast.DoWhileStmt:
-		return evalDoWhile(stmt, e)
+		return nil, evalDoWhile(stmt, e)
 	case ast.FunStmt:
-		return evalFun(stmt, e)
+		return nil, evalFun(stmt, e)
 	case ast.ReturnStmt:
-		return evalReturn(stmt, e)
+		return nil, evalReturn(stmt, e)
 	case ast.BreakStmt:
-		return throw.Break{}
+		return nil, throw.Break{}
 	case ast.ContinueStmt:
-		return throw.Continue{}
+		return nil, throw.Continue{}
 	case ast.BlockStmt:
-		return evalBlock(stmt, e)
+		return nil, evalBlock(stmt, e)
 	case ast.ExpressionStmt:
-		_, err := evalExpression(stmt.Expr, e)
-		return err
+		return evalExpression(stmt.Expr, e)
 	}
-	return nil
+	return nil, nil
 }
 
 func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, throw.Throwable) {
@@ -102,9 +104,11 @@ func evalIf(expr ast.IfStmt, e *env.Env) throw.Throwable {
 	}
 
 	if typing.Truthy(condition) {
-		return EvalStmt(expr.Then, e)
+		_, err := EvalStmt(expr.Then, e)
+		return err
 	} else if expr.Else != nil {
-		return EvalStmt(expr.Else, e)
+		_, err := EvalStmt(expr.Else, e)
+		return err
 	}
 	return nil
 }
@@ -118,7 +122,7 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
 			break
 		}
 
-		err = EvalStmt(expr.Body, e)
+		_, err = EvalStmt(expr.Body, e)
 		if err != nil {
 			if _, ok := err.(throw.Break); ok {
 				return nil
@@ -133,7 +137,7 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
 
 func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) throw.Throwable {
 	for true {
-		err := EvalStmt(expr.Body, e)
+		_, err := EvalStmt(expr.Body, e)
 		if err != nil {
 			if _, ok := err.(throw.Break); ok {
 				return nil
@@ -175,7 +179,7 @@ func evalReturn(expr ast.ReturnStmt, e *env.Env) throw.Throwable {
 func evalBlock(expr ast.BlockStmt, e *env.Env) throw.Throwable {
 	scope := env.NewEnclosedEnv(e)
 	for _, stmt := range expr.Body {
-		err := EvalStmt(stmt, scope)
+		_, err := EvalStmt(stmt, scope)
 		if err != nil {
 			return err
 		}

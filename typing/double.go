@@ -17,6 +17,9 @@ func (o Double) ToString() string {
 	} else if math.IsInf(o.Value, -1) {
 		return "-Infinity"
 	}
+	if o.Value == math.Floor(o.Value) {
+		return strconv.FormatFloat(o.Value, 'f', 1, 64)
+	}
 	return strconv.FormatFloat(o.Value, 'f', -1, 64)
 }
 
