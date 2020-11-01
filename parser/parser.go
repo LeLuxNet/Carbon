@@ -39,11 +39,6 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 		res, err = p.varStmt()
 	} else if p.match(token.Val) {
 		res, err = p.valStmt()
-	} else if p.Position+1 < len(p.Tokens) &&
-		p.Tokens[p.Position].Type == token.Identifier &&
-		p.Tokens[p.Position+1].Type == token.Equal {
-
-		res, err = p.assignStmt()
 	} else if p.match(token.If) {
 		return p.ifStmt()
 	} else if p.match(token.While) {
@@ -61,7 +56,23 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 	} else if p.match(token.LeftBrace) {
 		return p.blockStmt()
 	} else {
-		res, err = p.expressionStmt()
+		var success = false
+		if p.Position+1 < len(p.Tokens) && p.Tokens[p.Position].Type == token.Identifier {
+			t := p.Tokens[p.Position+1].Type
+			if t == token.Equal ||
+				t == token.PlusEqual ||
+				t == token.MinusEqual ||
+				t == token.AsteriskEqual ||
+				t == token.SlashEqual ||
+				t == token.PercentEqual ||
+				t == token.AsteriskAsteriskEqual {
+				success = true
+				res, err = p.assignStmt(t)
+			}
+		}
+		if !success {
+			res, err = p.expressionStmt()
+		}
 	}
 
 	if err != nil {
@@ -118,7 +129,7 @@ func (p *Parser) valStmt() (ast.Statement, *errors.SyntaxError) {
 	return ast.ValStmt{Name: name, Expr: expr}, nil
 }
 
-func (p *Parser) assignStmt() (ast.Statement, *errors.SyntaxError) {
+func (p *Parser) assignStmt(t token.TokenType) (ast.Statement, *errors.SyntaxError) {
 	name := p.Tokens[p.Position].Literal
 	p.Position += 2
 
@@ -127,7 +138,7 @@ func (p *Parser) assignStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	return ast.AssignStmt{Name: name, Expr: expr}, nil
+	return ast.AssignStmt{Name: name, Type: t, Expr: expr}, nil
 }
 
 func (p *Parser) ifStmt() (ast.Statement, *errors.SyntaxError) {

@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/leluxnet/carbon/token"
+
 type Statement interface {
 	astStatement()
 }
@@ -16,6 +18,7 @@ type ValStmt struct {
 
 type AssignStmt struct {
 	Name string
+	Type token.TokenType
 	Expr Expression
 }
 

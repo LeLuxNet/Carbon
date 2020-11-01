@@ -95,6 +95,34 @@ func evalAssignment(expr ast.AssignStmt, e *env.Env) typing.Throwable {
 		return err
 	}
 
+	if expr.Type == token.Equal {
+		return e.Set(expr.Name, val)
+	}
+
+	oldVal, err := e.Get(expr.Name)
+	if err != nil {
+		return err
+	}
+
+	switch expr.Type {
+	case token.PlusEqual:
+		val = typing.Add(oldVal, val)
+	case token.MinusEqual:
+		val = typing.Sub(oldVal, val)
+	case token.AsteriskEqual:
+		val = typing.Mult(oldVal, val)
+	case token.SlashEqual:
+		val = typing.Div(oldVal, val)
+	case token.PercentEqual:
+		val, err = typing.Mod(oldVal, val)
+	case token.AsteriskAsteriskEqual:
+		val = typing.Pow(oldVal, val)
+	}
+
+	if err != nil {
+		return err
+	}
+
 	return e.Set(expr.Name, val)
 }
 
@@ -263,6 +291,7 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 	switch expr.Type {
 	case token.EqualEqual:
 		return typing.Bool{Value: typing.Eq(left, right)}, nil
+
 	case token.Plus:
 		return typing.Add(left, right), nil
 	case token.Minus:
@@ -271,10 +300,10 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 		return typing.Mult(left, right), nil
 	case token.Slash:
 		return typing.Div(left, right), nil
-	case token.AsteriskAsterisk:
-		return typing.Pow(left, right), nil
 	case token.Percent:
 		return typing.Mod(left, right)
+	case token.AsteriskAsterisk:
+		return typing.Pow(left, right), nil
 	}
 
 	return nil, typing.NewError("Not implemented")

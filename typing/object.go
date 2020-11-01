@@ -32,20 +32,19 @@ func Eq(a, b Object) bool {
 			return a.Class().Name == b.Class().Name
 		}
 	case Double:
-		if b, ok := b.(Double); ok {
+		switch b := b.(type) {
+		case Double:
 			return a.Value == b.Value
-		}
-		if b, ok := b.(Int); ok {
+		case Int:
 			return a.Value == float64(b.Value)
 		}
 	case Int:
-		if b, ok := b.(Int); ok {
+		switch b := b.(type) {
+		case Int:
 			return a.Value == b.Value
-		}
-		if b, ok := b.(Double); ok {
+		case Double:
 			return float64(a.Value) == b.Value
-		}
-		if b, ok := b.(Bool); ok {
+		case Bool:
 			if b.Value {
 				return a.Value == 1
 			} else {
