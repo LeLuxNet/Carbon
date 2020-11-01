@@ -1,6 +1,9 @@
 package typing
 
-import "strconv"
+import (
+	imath "github.com/leluxnet/carbon/math"
+	"strconv"
+)
 
 var _ Object = Bool{}
 
@@ -58,15 +61,6 @@ func (o Bool) Sub(other Object, first bool) Object {
 		case Int:
 			return Int{o.ToInt() - other.Value}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Int{other.ToInt() - o.ToInt()}
-		case Double:
-			return Double{other.Value - float64(o.ToInt())}
-		case Int:
-			return Int{other.Value - o.ToInt()}
-		}
 	}
 	return nil
 }
@@ -105,17 +99,35 @@ func (o Bool) Div(other Object, first bool) Object {
 		case Int:
 			return Int{o.ToInt() / other.Value}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Int{other.ToInt() / o.ToInt()}
-		case Double:
-			return Double{other.Value / float64(o.ToInt())}
-		case Int:
-			return Int{other.Value / o.ToInt()}
-		}
 	}
 	return nil
+}
+
+func (o Bool) Mod(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value {
+				return Int{0}, nil
+			} else {
+				return nil, ZeroDivisionError{}
+			}
+		case Double:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Double{imath.DoubleMod(float64(o.ToInt()), other.Value)}, nil
+
+			}
+		case Int:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Int{imath.IntMod(o.ToInt(), other.Value)}, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (o Bool) Pow(other Object, first bool) Object {
@@ -130,22 +142,6 @@ func (o Bool) Pow(other Object, first bool) Object {
 		case Double:
 		case Int:
 			if o.Value || other.Value != 0 {
-				return Int{1}
-			} else {
-				return Int{0}
-			}
-		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			if other.Value || !o.Value {
-				return Int{1}
-			} else {
-				return Int{0}
-			}
-		case Double:
-		case Int:
-			if other.Value != 0 || !o.Value {
 				return Int{1}
 			} else {
 				return Int{0}

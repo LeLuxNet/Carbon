@@ -3,7 +3,6 @@ package builtin
 import (
 	"fmt"
 	"github.com/leluxnet/carbon/ast"
-	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/typing"
 	"strings"
 )
@@ -26,7 +25,7 @@ func (o Print) Class() typing.Class {
 	return typing.Class{Name: "function<print>"}
 }
 
-func (o Print) Call(args []typing.Object) throw.Throwable {
+func (o Print) Call(args []typing.Object) typing.Throwable {
 	if len(args) == 0 {
 		return nil
 	}

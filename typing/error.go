@@ -1,7 +1,5 @@
 package typing
 
-var ErrorClass = Class{"error"}
-
 var _ Object = Error{}
 
 type Error struct {
@@ -13,9 +11,15 @@ func (o Error) ToString() string {
 }
 
 func (o Error) Class() Class {
-	return ErrorClass
+	return Class{"Error"}
 }
 
-func (o Error) Error() string {
-	return o.Message
+type ZeroDivisionError struct{}
+
+func (o ZeroDivisionError) ToString() string {
+	return "Division by zero"
+}
+
+func (o ZeroDivisionError) Class() Class {
+	return Class{"ZeroDivisionError"}
 }

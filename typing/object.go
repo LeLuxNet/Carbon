@@ -129,3 +129,23 @@ func Pow(a, b Object) Object {
 	}
 	return nil
 }
+
+func Mod(a, b Object) (Object, Throwable) {
+	if a, ok := a.(Modable); ok {
+		res, err := a.Mod(b, true)
+		if err != nil {
+			return nil, Throw{Data: err}
+		}
+		if res != nil {
+			return res, nil
+		}
+	}
+	if b, ok := b.(Modable); ok {
+		res, err := b.Mod(a, false)
+		if err != nil {
+			return nil, Throw{Data: err}
+		}
+		return res, nil
+	}
+	return nil, nil
+}

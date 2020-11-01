@@ -1,6 +1,7 @@
 package typing
 
 import (
+	imath "github.com/leluxnet/carbon/math"
 	"math"
 	"strconv"
 )
@@ -41,15 +42,6 @@ func (o Int) Sub(other Object, first bool) Object {
 		case Int:
 			return Int{o.Value - other.Value}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Int{other.ToInt() - o.Value}
-		case Double:
-			return Double{other.Value - float64(o.Value)}
-		case Int:
-			return Int{other.Value - o.Value}
-		}
 	}
 	return nil
 }
@@ -76,17 +68,35 @@ func (o Int) Div(other Object, first bool) Object {
 		case Int:
 			return Double{float64(o.Value) / float64(other.Value)}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Int{other.ToInt() / o.Value}
-		case Double:
-			return Double{other.Value / float64(o.Value)}
-		case Int:
-			return Int{other.Value / o.Value}
-		}
 	}
 	return nil
+}
+
+func (o Int) Mod(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value {
+				return Int{0}, nil
+			} else {
+				return nil, ZeroDivisionError{}
+			}
+		case Double:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Double{imath.DoubleMod(float64(o.Value), other.Value)}, nil
+
+			}
+		case Int:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Int{imath.IntMod(o.Value, other.Value)}, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (o Int) Pow(other Object, first bool) Object {
@@ -102,19 +112,6 @@ func (o Int) Pow(other Object, first bool) Object {
 			return Double{math.Pow(float64(o.Value), other.Value)}
 		case Int:
 			return Double{math.Pow(float64(o.Value), float64(other.Value))}
-		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			if other.Value || o.Value == 0 {
-				return Int{1}
-			} else {
-				return Int{0}
-			}
-		case Double:
-			return Double{math.Pow(other.Value, float64(o.Value))}
-		case Int:
-			return Double{math.Pow(float64(other.Value), float64(o.Value))}
 		}
 	}
 	return nil

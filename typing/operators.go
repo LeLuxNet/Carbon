@@ -20,6 +20,10 @@ type Powable interface {
 	Pow(Object, bool) Object
 }
 
+type Modable interface {
+	Mod(Object, bool) (Object, Object)
+}
+
 type Negable interface {
 	Neg() Object
 }

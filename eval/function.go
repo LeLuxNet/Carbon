@@ -3,7 +3,6 @@ package eval
 import (
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
-	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/typing"
 )
 
@@ -21,7 +20,7 @@ func (o Function) Data() ast.ParamData {
 	return o.PData
 }
 
-func (o Function) Call(args []typing.Object) throw.Throwable {
+func (o Function) Call(args []typing.Object) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
 
 	for i, param := range o.PData.Params {

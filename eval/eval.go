@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
-	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/token"
 	"github.com/leluxnet/carbon/typing"
 )
 
-func Eval(stmts []ast.Statement, e *env.Env, printRes bool) throw.Throwable {
+func Eval(stmts []ast.Statement, e *env.Env, printRes bool) typing.Throwable {
 	for _, stmt := range stmts {
 		val, err := EvalStmt(stmt, e)
 		if err != nil {
@@ -23,7 +22,7 @@ func Eval(stmts []ast.Statement, e *env.Env, printRes bool) throw.Throwable {
 	return nil
 }
 
-func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, throw.Throwable) {
+func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, typing.Throwable) {
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
 		return nil, evalVar(stmt, e)
@@ -42,9 +41,9 @@ func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, throw.Throwable) {
 	case ast.ReturnStmt:
 		return nil, evalReturn(stmt, e)
 	case ast.BreakStmt:
-		return nil, throw.Break{}
+		return nil, typing.Break{}
 	case ast.ContinueStmt:
-		return nil, throw.Continue{}
+		return nil, typing.Continue{}
 	case ast.BlockStmt:
 		return nil, evalBlock(stmt, e)
 	case ast.ExpressionStmt:
@@ -53,7 +52,7 @@ func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, throw.Throwable) {
 	return nil, nil
 }
 
-func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, throw.Throwable) {
+func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Throwable) {
 	switch expr := expr.(type) {
 	case ast.LiteralExpression:
 		return expr.Object, nil
@@ -72,7 +71,7 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, throw.Throw
 	return typing.Null{}, nil
 }
 
-func evalVar(expr ast.VarStmt, e *env.Env) throw.Throwable {
+func evalVar(expr ast.VarStmt, e *env.Env) typing.Throwable {
 	val, err := evalExpression(expr.Expr, e)
 	if err != nil {
 		return err
@@ -81,7 +80,7 @@ func evalVar(expr ast.VarStmt, e *env.Env) throw.Throwable {
 	return e.Define(expr.Name, val, nil, false, false)
 }
 
-func evalVal(expr ast.ValStmt, e *env.Env) throw.Throwable {
+func evalVal(expr ast.ValStmt, e *env.Env) typing.Throwable {
 	val, err := evalExpression(expr.Expr, e)
 	if err != nil {
 		return err
@@ -90,7 +89,7 @@ func evalVal(expr ast.ValStmt, e *env.Env) throw.Throwable {
 	return e.Define(expr.Name, val, nil, false, true)
 }
 
-func evalAssignment(expr ast.AssignStmt, e *env.Env) throw.Throwable {
+func evalAssignment(expr ast.AssignStmt, e *env.Env) typing.Throwable {
 	val, err := evalExpression(expr.Expr, e)
 	if err != nil {
 		return err
@@ -99,7 +98,7 @@ func evalAssignment(expr ast.AssignStmt, e *env.Env) throw.Throwable {
 	return e.Set(expr.Name, val)
 }
 
-func evalIf(expr ast.IfStmt, e *env.Env) throw.Throwable {
+func evalIf(expr ast.IfStmt, e *env.Env) typing.Throwable {
 	condition, err := evalExpression(expr.Condition, e)
 	if err != nil {
 		return err
@@ -115,7 +114,7 @@ func evalIf(expr ast.IfStmt, e *env.Env) throw.Throwable {
 	return nil
 }
 
-func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
+func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
 	for true {
 		condition, err := evalExpression(expr.Condition, e)
 		if err != nil {
@@ -126,9 +125,9 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
 
 		_, err = EvalStmt(expr.Body, e)
 		if err != nil {
-			if _, ok := err.(throw.Break); ok {
+			if _, ok := err.(typing.Break); ok {
 				return nil
-			} else if _, ok := err.(throw.Continue); ok {
+			} else if _, ok := err.(typing.Continue); ok {
 				continue
 			}
 			return err
@@ -137,13 +136,13 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) throw.Throwable {
 	return nil
 }
 
-func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) throw.Throwable {
+func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Throwable {
 	for true {
 		_, err := EvalStmt(expr.Body, e)
 		if err != nil {
-			if _, ok := err.(throw.Break); ok {
+			if _, ok := err.(typing.Break); ok {
 				return nil
-			} else if _, ok := err.(throw.Continue); ok {
+			} else if _, ok := err.(typing.Continue); ok {
 				continue
 			}
 			return err
@@ -159,7 +158,7 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) throw.Throwable {
 	return nil
 }
 
-func evalFun(expr ast.FunStmt, e *env.Env) throw.Throwable {
+func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {
 	fun := Function{
 		Name:  expr.Name,
 		PData: expr.Data,
@@ -170,15 +169,15 @@ func evalFun(expr ast.FunStmt, e *env.Env) throw.Throwable {
 	return e.Define(expr.Name, fun, nil, false, true)
 }
 
-func evalReturn(expr ast.ReturnStmt, e *env.Env) throw.Throwable {
+func evalReturn(expr ast.ReturnStmt, e *env.Env) typing.Throwable {
 	val, err := evalExpression(expr.Expr, e)
 	if err != nil {
 		return err
 	}
-	return throw.Return{Data: val}
+	return typing.Return{Data: val}
 }
 
-func evalBlock(expr ast.BlockStmt, e *env.Env) throw.Throwable {
+func evalBlock(expr ast.BlockStmt, e *env.Env) typing.Throwable {
 	scope := env.NewEnclosedEnv(e)
 	for _, stmt := range expr.Body {
 		_, err := EvalStmt(stmt, scope)
@@ -189,11 +188,11 @@ func evalBlock(expr ast.BlockStmt, e *env.Env) throw.Throwable {
 	return nil
 }
 
-func evalVariable(expr ast.VariableExpression, e *env.Env) (typing.Object, throw.Throwable) {
+func evalVariable(expr ast.VariableExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	return e.Get(expr.Name)
 }
 
-func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, throw.Throwable) {
+func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	callee, err := evalExpression(expr.Callee, e)
 	if err != nil {
 		return nil, err
@@ -201,7 +200,7 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, throw.Throwab
 
 	fun, ok := callee.(ast.Callable)
 	if !ok {
-		return nil, throw.NewError("You can only call functions")
+		return nil, typing.NewError("You can only call functions")
 	}
 
 	var args []typing.Object
@@ -223,19 +222,19 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, throw.Throwab
 	}
 
 	if len(args) < minArgs {
-		return nil, throw.NewError("More args needed")
+		return nil, typing.NewError("More args needed")
 	} else if len(args) > len(data.Params) && data.Args == "" {
-		return nil, throw.NewError("Less args needed")
+		return nil, typing.NewError("Less args needed")
 	}
 
 	err = fun.Call(args)
-	if ret, ok := err.(throw.Return); ok {
+	if ret, ok := err.(typing.Return); ok {
 		return ret.Data, nil
 	}
 	return nil, err
 }
 
-func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, throw.Throwable) {
+func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	right, err := evalExpression(expr.Right, e)
 	if err != nil {
 		return nil, err
@@ -247,10 +246,10 @@ func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, throw.Throw
 			return right.Neg(), nil
 		}
 	}
-	return nil, throw.NewError("Not implemented")
+	return nil, typing.NewError("Not implemented")
 }
 
-func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, throw.Throwable) {
+func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	left, err := evalExpression(expr.Left, e)
 	if err != nil {
 		return nil, err
@@ -274,7 +273,9 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, throw.Thr
 		return typing.Div(left, right), nil
 	case token.AsteriskAsterisk:
 		return typing.Pow(left, right), nil
+	case token.Percent:
+		return typing.Mod(left, right)
 	}
 
-	return nil, throw.NewError("Not implemented")
+	return nil, typing.NewError("Not implemented")
 }

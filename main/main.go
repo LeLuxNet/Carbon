@@ -60,7 +60,7 @@ func run(source string, e *env.Env, printRes bool) int {
 
 	err := eval.Eval(stmts, e, printRes)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.TData())
+		fmt.Fprintln(os.Stderr, err.TData().ToString())
 		return 1
 	}
 

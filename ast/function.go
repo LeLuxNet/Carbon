@@ -1,13 +1,12 @@
 package ast
 
 import (
-	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/typing"
 )
 
 type Callable interface {
 	Data() ParamData
-	Call(args []typing.Object) throw.Throwable
+	Call(args []typing.Object) typing.Throwable
 }
 
 type Parameter struct {

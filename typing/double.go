@@ -1,6 +1,7 @@
 package typing
 
 import (
+	imath "github.com/leluxnet/carbon/math"
 	"math"
 	"strconv"
 )
@@ -49,15 +50,6 @@ func (o Double) Sub(other Object, first bool) Object {
 		case Int:
 			return Double{o.Value - float64(other.Value)}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Double{float64(other.ToInt()) - o.Value}
-		case Double:
-			return Double{other.Value - o.Value}
-		case Int:
-			return Double{float64(other.Value) - o.Value}
-		}
 	}
 	return nil
 }
@@ -84,17 +76,35 @@ func (o Double) Div(other Object, first bool) Object {
 		case Int:
 			return Double{o.Value / float64(other.Value)}
 		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			return Double{float64(other.ToInt()) / o.Value}
-		case Double:
-			return Double{other.Value / o.Value}
-		case Int:
-			return Double{float64(other.Value) / o.Value}
-		}
 	}
 	return nil
+}
+
+func (o Double) Mod(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Bool:
+			if other.Value {
+				return Double{0}, nil
+			} else {
+				return nil, ZeroDivisionError{}
+			}
+		case Double:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Double{imath.DoubleMod(o.Value, other.Value)}, nil
+
+			}
+		case Int:
+			if other.Value == 0 {
+				return nil, ZeroDivisionError{}
+			} else {
+				return Double{imath.DoubleMod(o.Value, float64(other.Value))}, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (o Double) Pow(other Object, first bool) Object {
@@ -110,19 +120,6 @@ func (o Double) Pow(other Object, first bool) Object {
 			return Double{math.Pow(o.Value, other.Value)}
 		case Int:
 			return Double{math.Pow(o.Value, float64(other.Value))}
-		}
-	} else {
-		switch other := other.(type) {
-		case Bool:
-			if other.Value || o.Value == 0 {
-				return Int{1}
-			} else {
-				return Int{0}
-			}
-		case Double:
-			return Double{math.Pow(other.Value, o.Value)}
-		case Int:
-			return Double{math.Pow(float64(other.Value), o.Value)}
 		}
 	}
 	return nil

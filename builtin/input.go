@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/leluxnet/carbon/ast"
-	"github.com/leluxnet/carbon/throw"
 	"github.com/leluxnet/carbon/typing"
 	"os"
 )
@@ -30,7 +29,7 @@ func (o Input) Class() typing.Class {
 	return typing.Class{Name: "function<input>"}
 }
 
-func (o Input) Call(args []typing.Object) throw.Throwable {
+func (o Input) Call(args []typing.Object) typing.Throwable {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	if len(args) > 0 {
@@ -40,5 +39,5 @@ func (o Input) Call(args []typing.Object) throw.Throwable {
 	scanner.Scan()
 	text := scanner.Text()
 
-	return throw.Return{Data: typing.String{Value: text}}
+	return typing.Return{Data: typing.String{Value: text}}
 }
