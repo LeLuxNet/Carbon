@@ -7,37 +7,25 @@ import (
 	"strings"
 )
 
-var _ ast.Callable = Print{}
-
-type Print struct{}
-
-func (o Print) Data() ast.ParamData {
-	return ast.ParamData{
+var Print = BFunction{
+	Name: "print",
+	data: ast.ParamData{
 		Args: "args",
-	}
-}
+	},
+	call: func(args []typing.Object) typing.Throwable {
+		if len(args) == 0 {
+			return nil
+		}
 
-func (o Print) ToString() string {
-	return "print"
-}
+		var builder strings.Builder
 
-func (o Print) Class() typing.Class {
-	return typing.Class{Name: "function<print>"}
-}
+		builder.WriteString(args[0].ToString())
+		for _, arg := range args[1:] {
+			builder.WriteString(" ")
+			builder.WriteString(arg.ToString())
+		}
 
-func (o Print) Call(args []typing.Object) typing.Throwable {
-	if len(args) == 0 {
+		fmt.Println(builder.String())
 		return nil
-	}
-
-	var builder strings.Builder
-
-	builder.WriteString(args[0].ToString())
-	for _, arg := range args[1:] {
-		builder.WriteString(" ")
-		builder.WriteString(arg.ToString())
-	}
-
-	fmt.Println(builder.String())
-	return nil
+	},
 }
