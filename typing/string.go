@@ -23,6 +23,13 @@ func (o String) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
+func (o String) NEq(other Object) (Object, Object) {
+	if other, ok := other.(String); ok {
+		return Bool{o.Value != other.Value}, nil
+	}
+	return nil, nil
+}
+
 func (o String) Add(other Object, first bool) (Object, Object) {
 	if first {
 		return String{o.Value + other.ToString()}, nil

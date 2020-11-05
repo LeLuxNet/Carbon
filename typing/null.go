@@ -17,3 +17,9 @@ func (o Null) Eq(other Object) (Object, Object) {
 	_, ok := other.(Null)
 	return Bool{ok}, nil
 }
+
+func (o Null) NEq(other Object) (Object, Object) {
+	// Other objects can not implement eq to null
+	_, ok := other.(Null)
+	return Bool{!ok}, nil
+}

@@ -22,6 +22,14 @@ func (o Class) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
+func (o Class) NEq(other Object) (Object, Object) {
+	if other, ok := other.(Class); ok {
+		// TODO: Better comparison
+		return Bool{o.Class().Name != other.Class().Name}, nil
+	}
+	return nil, nil
+}
+
 func (o Class) IsInstance(object Object) (Object, Throwable) {
 	return Eq(object.Class(), o)
 }

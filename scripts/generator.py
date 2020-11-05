@@ -66,7 +66,7 @@ operators_go = HEADER + """package typing
 
 """
 
-b_ops = ["Eq"]
+b_ops = []
 bf_ops = ["Add", "Sub", "Mul", "Div", "Mod", "Pow"]
 u_ops = ["Neg"]
 

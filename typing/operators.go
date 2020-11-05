@@ -4,30 +4,6 @@
 
 package typing
 
-type Eqable interface {
-	Eq(Object) (Object, Object)
-}
-
-func Eq(a, b Object) (Object, Throwable) {
-	if a, ok := a.(Eqable); ok {
-		res, err := a.Eq(b)
-		if err != nil {
-			return nil, Throw{Data: err}
-		}
-		if res != nil {
-			return res, nil
-		}
-	}
-	if b, ok := b.(Eqable); ok {
-		res, err := b.Eq(a)
-		if err != nil {
-			return nil, Throw{Data: err}
-		}
-		return res, nil
-	}
-	return nil, nil
-}
-
 type Addable interface {
 	Add(Object, bool) (Object, Object)
 }
