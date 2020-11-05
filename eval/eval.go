@@ -143,7 +143,7 @@ func evalIf(expr ast.IfStmt, e *env.Env) typing.Throwable {
 }
 
 func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
-	for true {
+	for {
 		condition, err := evalExpression(expr.Condition, e)
 		if err != nil {
 			return err
@@ -165,7 +165,7 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
 }
 
 func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Throwable {
-	for true {
+	for {
 		_, err := EvalStmt(expr.Body, e)
 		if err != nil {
 			if _, ok := err.(typing.Break); ok {

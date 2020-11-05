@@ -223,7 +223,7 @@ func (p *Parser) doWhileStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	return ast.WhileStmt{Condition: condition, Body: body}, nil
+	return ast.DoWhileStmt{Condition: condition, Body: body}, nil
 }
 
 func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
