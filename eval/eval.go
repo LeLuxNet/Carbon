@@ -290,7 +290,7 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 
 	switch expr.Type {
 	case token.EqualEqual:
-		return typing.Bool{Value: typing.Eq(left, right)}, nil
+		return typing.Eq(left, right)
 
 	case token.Plus:
 		return typing.Add(left, right)

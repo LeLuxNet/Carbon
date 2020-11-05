@@ -20,6 +20,22 @@ func (o Int) Class() Class {
 	return Class{"int"}
 }
 
+func (o Int) Eq(other Object) (Object, Object) {
+	switch other := other.(type) {
+	case Int:
+		return Bool{o.Value == other.Value}, nil
+	case Double:
+		return Bool{float64(o.Value) == other.Value}, nil
+	case Bool:
+		if other.Value {
+			return Bool{o.Value == 1}, nil
+		} else {
+			return Bool{o.Value == 0}, nil
+		}
+	}
+	return nil, nil
+}
+
 func (o Int) Add(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Bool:

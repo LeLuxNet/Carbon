@@ -11,3 +11,9 @@ func (o Null) ToString() string {
 func (o Null) Class() Class {
 	return Class{"null"}
 }
+
+func (o Null) Eq(other Object) (Object, Object) {
+	// Other objects can not implement eq to null
+	_, ok := other.(Null)
+	return Bool{ok}, nil
+}

@@ -16,6 +16,13 @@ func (o String) Class() Class {
 	return Class{"string"}
 }
 
+func (o String) Eq(other Object) (Object, Object) {
+	if other, ok := other.(String); ok {
+		return Bool{o.Value == other.Value}, nil
+	}
+	return nil, nil
+}
+
 func (o String) Add(other Object, first bool) (Object, Object) {
 	if first {
 		return String{o.Value + other.ToString()}, nil

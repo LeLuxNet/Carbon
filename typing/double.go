@@ -28,6 +28,16 @@ func (o Double) Class() Class {
 	return Class{"double"}
 }
 
+func (o Double) Eq(other Object) (Object, Object) {
+	switch other := other.(type) {
+	case Double:
+		return Bool{o.Value == other.Value}, nil
+	case Int:
+		return Bool{o.Value == float64(other.Value)}, nil
+	}
+	return nil, nil
+}
+
 func (o Double) Add(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Bool:

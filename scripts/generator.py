@@ -6,6 +6,32 @@ HEADER = """/* WARNING!
 """
 
 b_ops_template = """type #able interface {
+    #(Object) (Object, Object)
+}
+
+func #(a, b Object) (Object, Throwable) {
+    if a, ok := a.(#able); ok {
+        res, err := a.#(b)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(#able); ok {
+        res, err := b.#(a)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+"""
+
+bf_ops_template = """type #able interface {
     #(Object, bool) (Object, Object)
 }
 
@@ -40,11 +66,14 @@ operators_go = HEADER + """package typing
 
 """
 
-b_ops = ["Add", "Sub", "Mul", "Div", "Mod", "Pow"]
+b_ops = ["Eq"]
+bf_ops = ["Add", "Sub", "Mul", "Div", "Mod", "Pow"]
 u_ops = ["Neg"]
 
 for op in b_ops:
     operators_go += b_ops_template.replace("#", op)
+for op in bf_ops:
+    operators_go += bf_ops_template.replace("#", op)
 for op in u_ops:
     operators_go += u_ops_template.replace("#", op)
 

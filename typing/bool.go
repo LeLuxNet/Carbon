@@ -29,6 +29,13 @@ func (o Bool) ToInt() int {
 	return i
 }
 
+func (o Bool) Eq(other Object) (Object, Object) {
+	if other, ok := other.(Bool); ok {
+		return Bool{o.Value == other.Value}, nil
+	}
+	return nil, nil
+}
+
 func (o Bool) Neg() Object {
 	var i int
 	if o.Value {
