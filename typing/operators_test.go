@@ -13,13 +13,30 @@ func AssertOEq(t *testing.T, expect Object, val Object) {
 func TestOperators(t *testing.T) {
 	AssertOEq(t, Int{5}, Double{5})
 
-	AssertOEq(t, Int{4}, Add(Int{3}, Bool{true}))
-	AssertOEq(t, Double{2.5}, Div(Int{10}, Int{4}))
-	AssertOEq(t, String{"aaa"}, Mult(String{"a"}, Int{3}))
+	val, err := Add(Int{3}, Bool{true})
+	if err != nil {
+		t.Fatal(err.TData())
+	}
+	AssertOEq(t, Int{4}, val)
 
-	res, _ := Mod(Int{12}, Int{-9})
-	AssertOEq(t, Int{-6}, res)
+	val, err = Div(Int{10}, Int{4})
+	if err != nil {
+		t.Fatal(err.TData())
+	}
+	AssertOEq(t, Double{2.5}, val)
 
-	_, err := Mod(Double{4.5}, Int{0})
+	val, err = Mul(String{"a"}, Int{3})
+	if err != nil {
+		t.Fatal(err.TData())
+	}
+	AssertOEq(t, String{"aaa"}, val)
+
+	val, err = Mod(Int{12}, Int{-9})
+	if err != nil {
+		t.Fatal(err.TData())
+	}
+	AssertOEq(t, Int{-6}, val)
+
+	_, err = Mod(Double{4.5}, Int{0})
 	AssertOEq(t, ZeroDivisionError{}.Class(), err.TData().Class())
 }

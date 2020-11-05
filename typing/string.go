@@ -16,18 +16,18 @@ func (o String) Class() Class {
 	return Class{"string"}
 }
 
-func (o String) Add(other Object, first bool) Object {
+func (o String) Add(other Object, first bool) (Object, Object) {
 	if first {
-		return String{o.Value + other.ToString()}
+		return String{o.Value + other.ToString()}, nil
 	} else {
-		return String{other.ToString() + o.Value}
+		return String{other.ToString() + o.Value}, nil
 	}
 }
 
-func (o String) Mult(other Object, _ bool) Object {
+func (o String) Mul(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return String{strings.Repeat(o.Value, other.Value)}
+		return String{strings.Repeat(o.Value, other.Value)}, nil
 	}
-	return nil
+	return nil, nil
 }

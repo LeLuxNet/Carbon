@@ -39,68 +39,68 @@ func (o Bool) Neg() Object {
 	return Int{i}
 }
 
-func (o Bool) Add(other Object, _ bool) Object {
+func (o Bool) Add(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Bool:
-		return Int{o.ToInt() + other.ToInt()}
+		return Int{o.ToInt() + other.ToInt()}, nil
 	case Double:
-		return Double{Value: float64(o.ToInt()) + other.Value}
+		return Double{Value: float64(o.ToInt()) + other.Value}, nil
 	case Int:
-		return Int{Value: o.ToInt() + other.Value}
+		return Int{Value: o.ToInt() + other.Value}, nil
 	}
-	return nil
+	return nil, nil
 }
 
-func (o Bool) Sub(other Object, first bool) Object {
+func (o Bool) Sub(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Bool:
-			return Int{o.ToInt() - other.ToInt()}
+			return Int{o.ToInt() - other.ToInt()}, nil
 		case Double:
-			return Double{float64(o.ToInt()) - other.Value}
+			return Double{float64(o.ToInt()) - other.Value}, nil
 		case Int:
-			return Int{o.ToInt() - other.Value}
+			return Int{o.ToInt() - other.Value}, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
-func (o Bool) Mult(other Object, _ bool) Object {
+func (o Bool) Mul(other Object, _ bool) (Object, Object) {
 	if o.Value {
 		switch other := other.(type) {
 		case Bool:
 		case Double:
 		case Int:
 		case String:
-			return other
+			return other, nil
 		}
 	} else {
 		switch other.(type) {
 		case Bool:
-			return Bool{false}
+			return Bool{false}, nil
 		case Double:
-			return Double{0}
+			return Double{0}, nil
 		case Int:
-			return Int{0}
+			return Int{0}, nil
 		case String:
-			return String{""}
+			return String{""}, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
-func (o Bool) Div(other Object, first bool) Object {
+func (o Bool) Div(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Bool:
-			return Int{o.ToInt() / other.ToInt()}
+			return Int{o.ToInt() / other.ToInt()}, nil
 		case Double:
-			return Double{float64(o.ToInt()) / other.Value}
+			return Double{float64(o.ToInt()) / other.Value}, nil
 		case Int:
-			return Int{o.ToInt() / other.Value}
+			return Int{o.ToInt() / other.Value}, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (o Bool) Mod(other Object, first bool) (Object, Object) {
@@ -130,23 +130,23 @@ func (o Bool) Mod(other Object, first bool) (Object, Object) {
 	return nil, nil
 }
 
-func (o Bool) Pow(other Object, first bool) Object {
+func (o Bool) Pow(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Bool:
 			if o.Value || !other.Value {
-				return Int{1}
+				return Int{1}, nil
 			} else {
-				return Int{0}
+				return Int{0}, nil
 			}
 		case Double:
 		case Int:
 			if o.Value || other.Value != 0 {
-				return Int{1}
+				return Int{1}, nil
 			} else {
-				return Int{0}
+				return Int{0}, nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
