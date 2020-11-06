@@ -41,7 +41,8 @@ func (o String) Add(other Object, first bool) (Object, Object) {
 func (o String) Mul(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return String{strings.Repeat(o.Value, other.Value)}, nil
+		// TODO: Make a it work for high values: Custom function
+		return String{strings.Repeat(o.Value, int(other.Value.Int64()))}, nil
 	}
 	return nil, nil
 }

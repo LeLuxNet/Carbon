@@ -6,7 +6,7 @@ import (
 	"github.com/leluxnet/carbon/errors"
 	"github.com/leluxnet/carbon/token"
 	"github.com/leluxnet/carbon/typing"
-	"strconv"
+	"math/big"
 )
 
 type Parser struct {
@@ -418,14 +418,14 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 	} else if p.match(token.Null) {
 		return ast.LiteralExpression{Object: typing.Null{}}, nil
 	} else if p.match(token.Int) {
-		num, err := strconv.Atoi(p.previous().Literal)
-		if err != nil {
+		num, success := new(big.Int).SetString(p.previous().Literal, 10)
+		if !success {
 			fmt.Println(p.previous())
 			return nil, &errors.SyntaxError{Message: "Can't parse int"}
 		}
 		return ast.LiteralExpression{Object: typing.Int{Value: num}}, nil
 	} else if p.match(token.Double) {
-		num, err := strconv.ParseFloat(p.previous().Literal, 64)
+		num, _, err := new(big.Float).Parse(p.previous().Literal, 10)
 		if err != nil {
 			return nil, &errors.SyntaxError{Message: "Can't parse double"}
 		}

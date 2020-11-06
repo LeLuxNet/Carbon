@@ -1,5 +1,7 @@
 package typing
 
+import "math/big"
+
 #split
 
 #def a Lt: <: !o.Value && other.Value, Le: <=: !o.Value || other.Value, Gt: >: o.Value && !other.Value, Ge: >=: o.Value || !other.Value
@@ -7,14 +9,14 @@ package typing
 func (o Int) <a1>(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return Bool{o.Value <a2> other.Value}, nil
+		return Bool{o.Value.Cmp(other.Value) <a2> 0}, nil
 	case Double:
-		return Bool{float64(o.Value) <a2> other.Value}, nil
+		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) <a2> 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value <a2> 1}, nil
+			return Bool{o.Value.Cmp(IOne) <a2> 0}, nil
 		} else {
-			return Bool{o.Value <a2> 0}, nil
+			return Bool{o.Value.Sign() <a2> 0}, nil
 		}
 	}
 	return nil, nil
@@ -23,14 +25,14 @@ func (o Int) <a1>(other Object) (Object, Object) {
 func (o Double) <a1>(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return Bool{o.Value <a2> float64(other.Value)}, nil
+		return Bool{o.Value.Cmp(new(big.Float).SetInt(other.Value)) <a2> 0}, nil
 	case Double:
-		return Bool{o.Value <a2> other.Value}, nil
+		return Bool{o.Value.Cmp(other.Value) <a2> 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value <a2> 1}, nil
+			return Bool{o.Value.Cmp(DOne) <a2> 0}, nil
 		} else {
-			return Bool{o.Value <a2> 0}, nil
+			return Bool{o.Value.Sign() <a2> 0}, nil
 		}
 	}
 	return nil, nil
@@ -39,11 +41,16 @@ func (o Double) <a1>(other Object) (Object, Object) {
 func (o Bool) <a1>(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
+		if o.Value {
+			return Bool{1 <a2> other.Value.Cmp(IOne)}, nil
+		} else {
+			return Bool{0 <a2> other.Value.Sign()}, nil
+		}
 	case Double:
 		if o.Value {
-			return Bool{1 <a2> other.Value}, nil
+			return Bool{1 <a2> other.Value.Cmp(DOne)}, nil
 		} else {
-			return Bool{0 <a2> other.Value}, nil
+			return Bool{0 <a2> other.Value.Sign()}, nil
 		}
 	case Bool:
 		return Bool{<a3>}, nil

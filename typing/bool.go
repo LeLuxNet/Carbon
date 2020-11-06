@@ -1,7 +1,7 @@
 package typing
 
 import (
-	imath "github.com/leluxnet/carbon/math"
+	"math/big"
 	"strconv"
 )
 
@@ -34,8 +34,9 @@ func (o Bool) Eq(other Object) (Object, Object) {
 	case Bool:
 		return Bool{o.Value == other.Value}, nil
 	case Int:
+		return Bool{o.Value == (other.Value.Sign() == 0)}, nil
 	case Double:
-		return Bool{o.Value == (other.Value == 1)}, nil
+		return Bool{o.Value == (other.Value.Cmp(DOne) == 0)}, nil
 	}
 	return nil, nil
 }
@@ -45,44 +46,57 @@ func (o Bool) NEq(other Object) (Object, Object) {
 	case Bool:
 		return Bool{o.Value != other.Value}, nil
 	case Int:
+		return Bool{o.Value != (other.Value.Sign() == 0)}, nil
 	case Double:
-		return Bool{o.Value != (other.Value == 1)}, nil
+		return Bool{o.Value != (other.Value.Cmp(DOne) == 0)}, nil
 	}
 	return nil, nil
 }
 
 func (o Bool) Neg() Object {
-	var i int
 	if o.Value {
-		i = -1
+		return Int{INegOne}
 	} else {
-		i = 0
+		return Int{IZero}
 	}
-	return Int{i}
 }
 
 func (o Bool) Add(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return Int{Value: o.ToInt() + other.Value}, nil
+		if o.Value {
+			return Int{Value: new(big.Int).Add(other.Value, IOne)}, nil
+		} else {
+			return other, nil
+		}
 	case Double:
-		return Double{Value: float64(o.ToInt()) + other.Value}, nil
+		if o.Value {
+			return Double{Value: new(big.Float).Add(other.Value, DOne)}, nil
+		} else {
+			return other, nil
+		}
 	case Bool:
-		return Int{o.ToInt() + other.ToInt()}, nil
+		return Int{big.NewInt(int64(o.ToInt() + other.ToInt()))}, nil
 	}
 	return nil, nil
 }
 
-func (o Bool) Sub(other Object, first bool) (Object, Object) {
-	if first {
-		switch other := other.(type) {
-		case Int:
-			return Int{o.ToInt() - other.Value}, nil
-		case Double:
-			return Double{float64(o.ToInt()) - other.Value}, nil
-		case Bool:
-			return Int{o.ToInt() - other.ToInt()}, nil
+func (o Bool) Sub(other Object, _ bool) (Object, Object) {
+	switch other := other.(type) {
+	case Int:
+		if o.Value {
+			return Int{Value: new(big.Int).Sub(other.Value, IOne)}, nil
+		} else {
+			return other, nil
 		}
+	case Double:
+		if o.Value {
+			return Double{Value: new(big.Float).Sub(other.Value, DOne)}, nil
+		} else {
+			return other, nil
+		}
+	case Bool:
+		return Int{big.NewInt(int64(o.ToInt() - other.ToInt()))}, nil
 	}
 	return nil, nil
 }
@@ -99,9 +113,9 @@ func (o Bool) Mul(other Object, _ bool) (Object, Object) {
 	} else {
 		switch other.(type) {
 		case Int:
-			return Int{0}, nil
+			return Int{IZero}, nil
 		case Double:
-			return Double{0}, nil
+			return Double{DZero}, nil
 		case String:
 			return String{""}, nil
 		case Bool:
@@ -115,11 +129,29 @@ func (o Bool) Div(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Int:
-			return Int{o.ToInt() / other.Value}, nil
+			if other.Value.Sign() == 0 {
+				return nil, ZeroDivisionError{}
+			} else if o.Value {
+				return Int{new(big.Int).Quo(IOne, other.Value)}, nil
+			} else {
+				return Int{IZero}, nil
+			}
 		case Double:
-			return Double{float64(o.ToInt()) / other.Value}, nil
+			if other.Value.Sign() == 0 {
+				return nil, ZeroDivisionError{}
+			} else if o.Value {
+				return Double{new(big.Float).Quo(DOne, other.Value)}, nil
+			} else {
+				return Int{IZero}, nil
+			}
 		case Bool:
-			return Int{o.ToInt() / other.ToInt()}, nil
+			if !other.Value {
+				return nil, ZeroDivisionError{}
+			} else if o.Value {
+				return Int{IOne}, nil
+			} else {
+				return Int{IZero}, nil
+			}
 		}
 	}
 	return nil, nil
@@ -129,21 +161,23 @@ func (o Bool) Mod(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Int:
-			if other.Value == 0 {
+			switch other.Value.Sign() {
+			case 1:
+				return Int{IOne}, nil
+			case 0:
 				return nil, ZeroDivisionError{}
-			} else {
-				return Int{imath.IntMod(o.ToInt(), other.Value)}, nil
+			case -1:
+				return Int{INegOne}, nil
 			}
 		case Double:
-			if other.Value == 0 {
+			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				return Double{imath.DoubleMod(float64(o.ToInt()), other.Value)}, nil
-
+				panic("Not implemented")
 			}
 		case Bool:
 			if other.Value {
-				return Int{0}, nil
+				return Int{IZero}, nil
 			} else {
 				return nil, ZeroDivisionError{}
 			}
@@ -157,16 +191,16 @@ func (o Bool) Pow(other Object, first bool) (Object, Object) {
 		switch other := other.(type) {
 		case Int:
 		case Double:
-			if o.Value || other.Value != 0 {
-				return Int{1}, nil
+			if o.Value || other.Value.Sign() != 0 {
+				return Int{IOne}, nil
 			} else {
-				return Int{0}, nil
+				return Int{IZero}, nil
 			}
 		case Bool:
 			if o.Value || !other.Value {
-				return Int{1}, nil
+				return Int{IOne}, nil
 			} else {
-				return Int{0}, nil
+				return Int{IZero}, nil
 			}
 		}
 	}
