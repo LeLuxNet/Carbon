@@ -1,0 +1,65 @@
+package typing
+
+#split
+
+#def a Lt: Gt, Le: Ge, Gt: Gt, Ge: Le
+
+type <a1>able interface {
+    <a1>(Object) (Object, Object)
+}
+
+func <a1>(a, b Object) (Object, Throwable) {
+    if a, ok := a.(<a1>able); ok {
+        res, err := a.<a1>(b)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(<a2>able); ok {
+        res, err := b.<a2>(a)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+#split
+
+#def a Add, Sub, Mul, Div, Mod, Pow
+
+type <a1>able interface {
+    <a1>(Object, bool) (Object, Object)
+}
+
+func <a1>(a, b Object) (Object, Throwable) {
+    if a, ok := a.(<a1>able); ok {
+        res, err := a.<a1>(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(<a1>able); ok {
+        res, err := b.<a1>(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+#split
+
+#def a Neg
+
+type <a1>able interface {
+    <a1>() Object
+}

@@ -1,0 +1,52 @@
+package typing
+
+#split
+
+#def a Lt: <: !o.Value && other.Value, Le: <=: !o.Value || other.Value, Gt: >: o.Value && !other.Value, Ge: >=: o.Value || !other.Value
+
+func (o Int) <a1>(other Object) (Object, Object) {
+	switch other := other.(type) {
+	case Int:
+		return Bool{o.Value <a2> other.Value}, nil
+	case Double:
+		return Bool{float64(o.Value) <a2> other.Value}, nil
+	case Bool:
+		if other.Value {
+			return Bool{o.Value <a2> 1}, nil
+		} else {
+			return Bool{o.Value <a2> 0}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Double) <a1>(other Object) (Object, Object) {
+	switch other := other.(type) {
+	case Int:
+		return Bool{o.Value <a2> float64(other.Value)}, nil
+	case Double:
+		return Bool{o.Value <a2> other.Value}, nil
+	case Bool:
+		if other.Value {
+			return Bool{o.Value <a2> 1}, nil
+		} else {
+			return Bool{o.Value <a2> 0}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Bool) <a1>(other Object) (Object, Object) {
+	switch other := other.(type) {
+	case Int:
+	case Double:
+		if o.Value {
+			return Bool{1 <a2> other.Value}, nil
+		} else {
+			return Bool{0 <a2> other.Value}, nil
+		}
+	case Bool:
+		return Bool{<a3>}, nil
+	}
+	return nil, nil
+}

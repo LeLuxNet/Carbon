@@ -293,6 +293,14 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 		return typing.Eq(left, right)
 	case token.BangEqual:
 		return typing.NEq(left, right)
+	case token.Less:
+		return typing.Lt(left, right)
+	case token.LessEqual:
+		return typing.Le(left, right)
+	case token.Greater:
+		return typing.Gt(left, right)
+	case token.GreaterEqual:
+		return typing.Ge(left, right)
 
 	case token.Plus:
 		return typing.Add(left, right)
