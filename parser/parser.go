@@ -324,10 +324,26 @@ func (p *Parser) conjunction() (ast.Expression, *errors.SyntaxError) {
 }
 
 func (p *Parser) comparison() (ast.Expression, *errors.SyntaxError) {
-	return p.loopMatch(p.sum, token.EqualEqual, token.BangEqual,
+	return p.loopMatch(p.bitwiseOr, token.EqualEqual, token.BangEqual,
 		token.EqualEqualEqual, token.BangEqualEqual,
 		token.LessEqual, token.Less,
 		token.GreaterEqual, token.Greater)
+}
+
+func (p *Parser) bitwiseOr() (ast.Expression, *errors.SyntaxError) {
+	return p.loopMatch(p.bitwiseXor, token.Pipe)
+}
+
+func (p *Parser) bitwiseXor() (ast.Expression, *errors.SyntaxError) {
+	return p.loopMatch(p.bitwiseAnd, token.Tilde)
+}
+
+func (p *Parser) bitwiseAnd() (ast.Expression, *errors.SyntaxError) {
+	return p.loopMatch(p.shift, token.Ampersand)
+}
+
+func (p *Parser) shift() (ast.Expression, *errors.SyntaxError) {
+	return p.loopMatch(p.sum, token.LeftShift, token.RightShift, token.URightShift)
 }
 
 func (p *Parser) sum() (ast.Expression, *errors.SyntaxError) {

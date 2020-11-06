@@ -30,7 +30,7 @@ func <a1>(a, b Object) (Object, Throwable) {
 
 #split
 
-#def a Add, Sub, Mul, Div, Mod, Pow
+#def a Add, Sub, Mul, Div, Mod, Pow, LShift, RShift, URShift
 
 type <a1>able interface {
     <a1>(Object, bool) (Object, Object)

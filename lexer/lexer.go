@@ -159,7 +159,11 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		if l.isNextChar('=') {
 			tok = token.GreaterEqual
 		} else if l.isNextChar('>') {
-			tok = token.RightShift
+			if l.isNextChar('>') {
+				tok = token.URightShift
+			} else {
+				tok = token.RightShift
+			}
 		} else {
 			tok = token.Greater
 		}

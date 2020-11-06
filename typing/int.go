@@ -143,3 +143,23 @@ func (o Int) Pow(other Object, first bool) (Object, Object) {
 func (o Int) Neg() Object {
 	return Int{-o.Value}
 }
+
+func (o Int) LShift(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Int:
+			return Int{o.Value << other.Value}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Int) RShift(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Int:
+			return Int{o.Value >> other.Value}, nil
+		}
+	}
+	return nil, nil
+}

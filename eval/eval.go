@@ -314,6 +314,13 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 		return typing.Mod(left, right)
 	case token.AsteriskAsterisk:
 		return typing.Pow(left, right)
+
+	case token.LeftShift:
+		return typing.LShift(left, right)
+	case token.RightShift:
+		return typing.RShift(left, right)
+	case token.URightShift:
+		return typing.URShift(left, right)
 	}
 
 	return nil, typing.NewError("Not implemented")

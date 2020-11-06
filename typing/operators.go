@@ -244,6 +244,78 @@ func Pow(a, b Object) (Object, Throwable) {
     return nil, nil
 }
 
+type LShiftable interface {
+    LShift(Object, bool) (Object, Object)
+}
+
+func LShift(a, b Object) (Object, Throwable) {
+    if a, ok := a.(LShiftable); ok {
+        res, err := a.LShift(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(LShiftable); ok {
+        res, err := b.LShift(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+type RShiftable interface {
+    RShift(Object, bool) (Object, Object)
+}
+
+func RShift(a, b Object) (Object, Throwable) {
+    if a, ok := a.(RShiftable); ok {
+        res, err := a.RShift(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(RShiftable); ok {
+        res, err := b.RShift(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+type URShiftable interface {
+    URShift(Object, bool) (Object, Object)
+}
+
+func URShift(a, b Object) (Object, Throwable) {
+    if a, ok := a.(URShiftable); ok {
+        res, err := a.URShift(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(URShiftable); ok {
+        res, err := b.URShift(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
 type Negable interface {
     Neg() Object
 }

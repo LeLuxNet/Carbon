@@ -60,6 +60,7 @@ const (
 	Tilde
 	LeftShift
 	RightShift
+	URightShift
 
 	Null
 	Bool
