@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/math"
 	"math/big"
 )
 
@@ -124,16 +125,16 @@ func (o Int) Mod(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Int:
-			if other.Value.Cmp(other.Value) == 0 {
+			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
 				return Int{new(big.Int).Mod(o.Value, other.Value)}, nil
 			}
 		case Double:
-			if other.Value.Cmp(other.Value) == 0 {
+			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				panic("Not implemented")
+				return Double{math.Mod(new(big.Float).SetInt(o.Value), other.Value)}, nil
 			}
 		case Bool:
 			if other.Value {

@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/math"
 	"math/big"
 )
 
@@ -14,16 +15,16 @@ type Double struct {
 }
 
 func (o Double) ToString() string {
-	return o.Value.String()
-	/* if math.IsInf(o.Value, 1) {
-		return "Infinity"
-	} else if math.IsInf(o.Value, -1) {
-		return "-Infinity"
+	if o.Value.IsInf() {
+		if o.Value.Signbit() {
+			return "-Infinity"
+		} else {
+			return "Infinity"
+		}
+	} else if o.Value.IsInt() {
+		return o.Value.Text('f', 1)
 	}
-	if o.Value == math.Floor(o.Value) {
-		return strconv.FormatFloat(o.Value, 'f', 1, 64)
-	}
-	return strconv.FormatFloat(o.Value, 'f', -1, 64) */
+	return o.Value.Text('f', -1)
 }
 
 func (o Double) Class() Class {
@@ -97,9 +98,9 @@ func (o Double) Sub(other Object, _ bool) (Object, Object) {
 func (o Double) Mul(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		return Double{new(big.Float).Sub(o.Value, new(big.Float).SetInt(other.Value))}, nil
+		return Double{new(big.Float).Mul(o.Value, new(big.Float).SetInt(other.Value))}, nil
 	case Double:
-		return Double{new(big.Float).Sub(o.Value, other.Value)}, nil
+		return Double{new(big.Float).Mul(o.Value, other.Value)}, nil
 	case Bool:
 		if other.Value {
 			return o, nil
@@ -135,13 +136,13 @@ func (o Double) Mod(other Object, first bool) (Object, Object) {
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				panic("Not implemented")
+				return Double{math.Mod(o.Value, new(big.Float).SetInt(other.Value))}, nil
 			}
 		case Double:
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				panic("Not implemented")
+				return Double{math.Mod(o.Value, other.Value)}, nil
 			}
 		case Bool:
 			if other.Value {
@@ -158,7 +159,7 @@ func (o Double) Pow(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Int:
-			panic("Not implemented")
+			return Double{math.Exp(o.Value, other.Value)}, nil
 		case Double:
 			panic("Not implemented")
 		case Bool:

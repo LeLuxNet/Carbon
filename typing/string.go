@@ -1,6 +1,9 @@
 package typing
 
-import "strings"
+import (
+	"math/big"
+	"strings"
+)
 
 var _ Object = String{}
 
@@ -41,8 +44,11 @@ func (o String) Add(other Object, first bool) (Object, Object) {
 func (o String) Mul(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
-		// TODO: Make a it work for high values: Custom function
-		return String{strings.Repeat(o.Value, int(other.Value.Int64()))}, nil
+		var b strings.Builder
+		for i := new(big.Int).Set(other.Value); i.Sign() > 0; i = i.Sub(i, IOne) {
+			b.WriteString(o.Value)
+		}
+		return String{b.String()}, nil
 	}
 	return nil, nil
 }
