@@ -4,7 +4,10 @@
 
 package typing
 
-import "math/big"
+import (
+	"github.com/leluxnet/carbon/math"
+	"math/big"
+)
 
 func (o Int) Lt(other Object) (Object, Object) {
 	switch other := other.(type) {
@@ -14,7 +17,7 @@ func (o Int) Lt(other Object) (Object, Object) {
 		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) < 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) < 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) < 0}, nil
 		} else {
 			return Bool{o.Value.Sign() < 0}, nil
 		}
@@ -30,7 +33,7 @@ func (o Double) Lt(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) < 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) < 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) < 0}, nil
 		} else {
 			return Bool{o.Value.Sign() < 0}, nil
 		}
@@ -42,13 +45,13 @@ func (o Bool) Lt(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Bool{1 < other.Value.Cmp(IOne)}, nil
+			return Bool{1 < other.Value.Cmp(math.IOne)}, nil
 		} else {
 			return Bool{0 < other.Value.Sign()}, nil
 		}
 	case Double:
 		if o.Value {
-			return Bool{1 < other.Value.Cmp(DOne)}, nil
+			return Bool{1 < other.Value.Cmp(math.DOne)}, nil
 		} else {
 			return Bool{0 < other.Value.Sign()}, nil
 		}
@@ -66,7 +69,7 @@ func (o Int) Le(other Object) (Object, Object) {
 		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) <= 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) <= 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) <= 0}, nil
 		} else {
 			return Bool{o.Value.Sign() <= 0}, nil
 		}
@@ -82,7 +85,7 @@ func (o Double) Le(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) <= 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) <= 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) <= 0}, nil
 		} else {
 			return Bool{o.Value.Sign() <= 0}, nil
 		}
@@ -94,13 +97,13 @@ func (o Bool) Le(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Bool{1 <= other.Value.Cmp(IOne)}, nil
+			return Bool{1 <= other.Value.Cmp(math.IOne)}, nil
 		} else {
 			return Bool{0 <= other.Value.Sign()}, nil
 		}
 	case Double:
 		if o.Value {
-			return Bool{1 <= other.Value.Cmp(DOne)}, nil
+			return Bool{1 <= other.Value.Cmp(math.DOne)}, nil
 		} else {
 			return Bool{0 <= other.Value.Sign()}, nil
 		}
@@ -118,7 +121,7 @@ func (o Int) Gt(other Object) (Object, Object) {
 		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) > 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) > 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) > 0}, nil
 		} else {
 			return Bool{o.Value.Sign() > 0}, nil
 		}
@@ -134,7 +137,7 @@ func (o Double) Gt(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) > 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) > 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) > 0}, nil
 		} else {
 			return Bool{o.Value.Sign() > 0}, nil
 		}
@@ -146,13 +149,13 @@ func (o Bool) Gt(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Bool{1 > other.Value.Cmp(IOne)}, nil
+			return Bool{1 > other.Value.Cmp(math.IOne)}, nil
 		} else {
 			return Bool{0 > other.Value.Sign()}, nil
 		}
 	case Double:
 		if o.Value {
-			return Bool{1 > other.Value.Cmp(DOne)}, nil
+			return Bool{1 > other.Value.Cmp(math.DOne)}, nil
 		} else {
 			return Bool{0 > other.Value.Sign()}, nil
 		}
@@ -170,7 +173,7 @@ func (o Int) Ge(other Object) (Object, Object) {
 		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) >= 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) >= 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) >= 0}, nil
 		} else {
 			return Bool{o.Value.Sign() >= 0}, nil
 		}
@@ -186,7 +189,7 @@ func (o Double) Ge(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) >= 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) >= 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) >= 0}, nil
 		} else {
 			return Bool{o.Value.Sign() >= 0}, nil
 		}
@@ -198,13 +201,13 @@ func (o Bool) Ge(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Bool{1 >= other.Value.Cmp(IOne)}, nil
+			return Bool{1 >= other.Value.Cmp(math.IOne)}, nil
 		} else {
 			return Bool{0 >= other.Value.Sign()}, nil
 		}
 	case Double:
 		if o.Value {
-			return Bool{1 >= other.Value.Cmp(DOne)}, nil
+			return Bool{1 >= other.Value.Cmp(math.DOne)}, nil
 		} else {
 			return Bool{0 >= other.Value.Sign()}, nil
 		}

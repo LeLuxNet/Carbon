@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/math"
 	"math/big"
 	"strings"
 )
@@ -45,7 +46,7 @@ func (o String) Mul(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		var b strings.Builder
-		for i := new(big.Int).Set(other.Value); i.Sign() > 0; i = i.Sub(i, IOne) {
+		for i := new(big.Int).Set(other.Value); i.Sign() > 0; i = i.Sub(i, math.IOne) {
 			b.WriteString(o.Value)
 		}
 		return String{b.String()}, nil

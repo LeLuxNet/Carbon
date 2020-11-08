@@ -258,10 +258,9 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 }
 
 func (l *Lexer) number() token.Token {
-	col := l.Column
-
 	l.Position--
 	l.Column--
+	col := l.Column
 	pos := l.Position
 
 	for !l.isEnd() && isDigit(l.Chars[l.Position]) {

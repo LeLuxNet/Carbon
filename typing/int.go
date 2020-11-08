@@ -7,10 +7,6 @@ import (
 
 var _ Object = Int{}
 
-var IZero = big.NewInt(0)
-var IOne = big.NewInt(1)
-var INegOne = big.NewInt(-1)
-
 type Int struct {
 	Value *big.Int
 }
@@ -31,7 +27,7 @@ func (o Int) Eq(other Object) (Object, Object) {
 		return Bool{other.Value.Cmp(new(big.Float).SetInt(o.Value)) == 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) == 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) == 0}, nil
 		} else {
 			return Bool{o.Value.Sign() == 0}, nil
 		}
@@ -47,7 +43,7 @@ func (o Int) NEq(other Object) (Object, Object) {
 		return Bool{other.Value.Cmp(new(big.Float).SetInt(o.Value)) != 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) != 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) != 0}, nil
 		} else {
 			return Bool{o.Value.Sign() != 0}, nil
 		}
@@ -63,7 +59,7 @@ func (o Int) Add(other Object, _ bool) (Object, Object) {
 		return Double{new(big.Float).Add(new(big.Float).SetInt(o.Value), other.Value)}, nil
 	case Bool:
 		if other.Value {
-			return Int{new(big.Int).Add(o.Value, IOne)}, nil
+			return Int{new(big.Int).Add(o.Value, math.IOne)}, nil
 		} else {
 			return o, nil
 		}
@@ -79,7 +75,7 @@ func (o Int) Sub(other Object, _ bool) (Object, Object) {
 		return Double{new(big.Float).Sub(new(big.Float).SetInt(o.Value), other.Value)}, nil
 	case Bool:
 		if other.Value {
-			return Int{new(big.Int).Sub(o.Value, IOne)}, nil
+			return Int{new(big.Int).Sub(o.Value, math.IOne)}, nil
 		} else {
 			return o, nil
 		}
@@ -97,7 +93,7 @@ func (o Int) Mul(other Object, _ bool) (Object, Object) {
 		if other.Value {
 			return o, nil
 		} else {
-			return Int{Value: IZero}, nil
+			return Int{Value: math.IZero}, nil
 		}
 	}
 	return nil, nil
@@ -128,17 +124,17 @@ func (o Int) Mod(other Object, first bool) (Object, Object) {
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				return Int{new(big.Int).Mod(o.Value, other.Value)}, nil
+				return Int{math.IMod(o.Value, other.Value)}, nil
 			}
 		case Double:
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				return Double{math.Mod(new(big.Float).SetInt(o.Value), other.Value)}, nil
+				return Double{math.DMod(new(big.Float).SetInt(o.Value), other.Value)}, nil
 			}
 		case Bool:
 			if other.Value {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			} else {
 				return nil, ZeroDivisionError{}
 			}
@@ -153,12 +149,12 @@ func (o Int) Pow(other Object, first bool) (Object, Object) {
 		case Int:
 			return Int{new(big.Int).Exp(o.Value, other.Value, nil)}, nil
 		case Double:
-			panic("Not implemented")
+			return Double{math.Pow(new(big.Float).SetInt(o.Value), other.Value)}, nil
 		case Bool:
 			if other.Value {
 				return o, nil
 			} else {
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			}
 		}
 	}

@@ -7,8 +7,6 @@ import (
 
 var _ Object = Double{}
 
-var DZero = big.NewFloat(0)
-var DOne = big.NewFloat(1)
 
 type Double struct {
 	Value *big.Float
@@ -39,7 +37,7 @@ func (o Double) Eq(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) == 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) == 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) == 0}, nil
 		} else {
 			return Bool{o.Value.Sign() == 0}, nil
 		}
@@ -55,7 +53,7 @@ func (o Double) NEq(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) != 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) != 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) != 0}, nil
 		} else {
 			return Bool{o.Value.Sign() != 0}, nil
 		}
@@ -71,7 +69,7 @@ func (o Double) Add(other Object, _ bool) (Object, Object) {
 		return Double{new(big.Float).Add(o.Value, other.Value)}, nil
 	case Bool:
 		if other.Value {
-			return Double{new(big.Float).Add(o.Value, DOne)}, nil
+			return Double{new(big.Float).Add(o.Value, math.DOne)}, nil
 		} else {
 			return o, nil
 		}
@@ -105,7 +103,7 @@ func (o Double) Mul(other Object, _ bool) (Object, Object) {
 		if other.Value {
 			return o, nil
 		} else {
-			return Double{DZero}, nil
+			return Double{math.DZero}, nil
 		}
 	}
 	return nil, nil
@@ -136,17 +134,17 @@ func (o Double) Mod(other Object, first bool) (Object, Object) {
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				return Double{math.Mod(o.Value, new(big.Float).SetInt(other.Value))}, nil
+				return Double{math.DMod(o.Value, new(big.Float).SetInt(other.Value))}, nil
 			}
 		case Double:
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else {
-				return Double{math.Mod(o.Value, other.Value)}, nil
+				return Double{math.DMod(o.Value, other.Value)}, nil
 			}
 		case Bool:
 			if other.Value {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			} else {
 				return nil, ZeroDivisionError{}
 			}
@@ -159,14 +157,14 @@ func (o Double) Pow(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
 		case Int:
-			return Double{math.Exp(o.Value, other.Value)}, nil
+			return Double{math.Pow(o.Value, new(big.Float).SetInt(other.Value))}, nil
 		case Double:
-			panic("Not implemented")
+			return Double{math.Pow(o.Value, other.Value)}, nil
 		case Bool:
 			if other.Value {
 				return o, nil
 			} else {
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			}
 		}
 	}

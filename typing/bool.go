@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/math"
 	"math/big"
 	"strconv"
 )
@@ -36,7 +37,7 @@ func (o Bool) Eq(other Object) (Object, Object) {
 	case Int:
 		return Bool{o.Value == (other.Value.Sign() == 0)}, nil
 	case Double:
-		return Bool{o.Value == (other.Value.Cmp(DOne) == 0)}, nil
+		return Bool{o.Value == (other.Value.Cmp(math.DOne) == 0)}, nil
 	}
 	return nil, nil
 }
@@ -48,16 +49,16 @@ func (o Bool) NEq(other Object) (Object, Object) {
 	case Int:
 		return Bool{o.Value != (other.Value.Sign() == 0)}, nil
 	case Double:
-		return Bool{o.Value != (other.Value.Cmp(DOne) == 0)}, nil
+		return Bool{o.Value != (other.Value.Cmp(math.DOne) == 0)}, nil
 	}
 	return nil, nil
 }
 
 func (o Bool) Neg() Object {
 	if o.Value {
-		return Int{INegOne}
+		return Int{math.INegOne}
 	} else {
-		return Int{IZero}
+		return Int{math.IZero}
 	}
 }
 
@@ -65,13 +66,13 @@ func (o Bool) Add(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Int{Value: new(big.Int).Add(other.Value, IOne)}, nil
+			return Int{Value: new(big.Int).Add(other.Value, math.IOne)}, nil
 		} else {
 			return other, nil
 		}
 	case Double:
 		if o.Value {
-			return Double{Value: new(big.Float).Add(other.Value, DOne)}, nil
+			return Double{Value: new(big.Float).Add(other.Value, math.DOne)}, nil
 		} else {
 			return other, nil
 		}
@@ -85,13 +86,13 @@ func (o Bool) Sub(other Object, _ bool) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Int{Value: new(big.Int).Sub(other.Value, IOne)}, nil
+			return Int{Value: new(big.Int).Sub(other.Value, math.IOne)}, nil
 		} else {
 			return other, nil
 		}
 	case Double:
 		if o.Value {
-			return Double{Value: new(big.Float).Sub(other.Value, DOne)}, nil
+			return Double{Value: new(big.Float).Sub(other.Value, math.DOne)}, nil
 		} else {
 			return other, nil
 		}
@@ -113,9 +114,9 @@ func (o Bool) Mul(other Object, _ bool) (Object, Object) {
 	} else {
 		switch other.(type) {
 		case Int:
-			return Int{IZero}, nil
+			return Int{math.IZero}, nil
 		case Double:
-			return Double{DZero}, nil
+			return Double{math.DZero}, nil
 		case String:
 			return String{""}, nil
 		case Bool:
@@ -132,25 +133,25 @@ func (o Bool) Div(other Object, first bool) (Object, Object) {
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else if o.Value {
-				return Int{new(big.Int).Quo(IOne, other.Value)}, nil
+				return Int{new(big.Int).Quo(math.IOne, other.Value)}, nil
 			} else {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			}
 		case Double:
 			if other.Value.Sign() == 0 {
 				return nil, ZeroDivisionError{}
 			} else if o.Value {
-				return Double{new(big.Float).Quo(DOne, other.Value)}, nil
+				return Double{new(big.Float).Quo(math.DOne, other.Value)}, nil
 			} else {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			}
 		case Bool:
 			if !other.Value {
 				return nil, ZeroDivisionError{}
 			} else if o.Value {
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			} else {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			}
 		}
 	}
@@ -163,11 +164,11 @@ func (o Bool) Mod(other Object, first bool) (Object, Object) {
 		case Int:
 			switch other.Value.Sign() {
 			case 1:
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			case 0:
 				return nil, ZeroDivisionError{}
 			case -1:
-				return Int{INegOne}, nil
+				return Int{math.INegOne}, nil
 			}
 		case Double:
 			if other.Value.Sign() == 0 {
@@ -177,7 +178,7 @@ func (o Bool) Mod(other Object, first bool) (Object, Object) {
 			}
 		case Bool:
 			if other.Value {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			} else {
 				return nil, ZeroDivisionError{}
 			}
@@ -192,15 +193,15 @@ func (o Bool) Pow(other Object, first bool) (Object, Object) {
 		case Int:
 		case Double:
 			if o.Value || other.Value.Sign() != 0 {
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			} else {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			}
 		case Bool:
 			if o.Value || !other.Value {
-				return Int{IOne}, nil
+				return Int{math.IOne}, nil
 			} else {
-				return Int{IZero}, nil
+				return Int{math.IZero}, nil
 			}
 		}
 	}

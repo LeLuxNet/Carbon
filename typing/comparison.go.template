@@ -1,6 +1,9 @@
 package typing
 
-import "math/big"
+import (
+	"github.com/leluxnet/carbon/math"
+	"math/big"
+)
 
 #split
 
@@ -14,7 +17,7 @@ func (o Int) <a1>(other Object) (Object, Object) {
 		return Bool{new(big.Float).SetInt(o.Value).Cmp(other.Value) <a2> 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(IOne) <a2> 0}, nil
+			return Bool{o.Value.Cmp(math.IOne) <a2> 0}, nil
 		} else {
 			return Bool{o.Value.Sign() <a2> 0}, nil
 		}
@@ -30,7 +33,7 @@ func (o Double) <a1>(other Object) (Object, Object) {
 		return Bool{o.Value.Cmp(other.Value) <a2> 0}, nil
 	case Bool:
 		if other.Value {
-			return Bool{o.Value.Cmp(DOne) <a2> 0}, nil
+			return Bool{o.Value.Cmp(math.DOne) <a2> 0}, nil
 		} else {
 			return Bool{o.Value.Sign() <a2> 0}, nil
 		}
@@ -42,13 +45,13 @@ func (o Bool) <a1>(other Object) (Object, Object) {
 	switch other := other.(type) {
 	case Int:
 		if o.Value {
-			return Bool{1 <a2> other.Value.Cmp(IOne)}, nil
+			return Bool{1 <a2> other.Value.Cmp(math.IOne)}, nil
 		} else {
 			return Bool{0 <a2> other.Value.Sign()}, nil
 		}
 	case Double:
 		if o.Value {
-			return Bool{1 <a2> other.Value.Cmp(DOne)}, nil
+			return Bool{1 <a2> other.Value.Cmp(math.DOne)}, nil
 		} else {
 			return Bool{0 <a2> other.Value.Sign()}, nil
 		}
