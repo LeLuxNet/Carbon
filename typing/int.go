@@ -165,6 +165,14 @@ func (o Int) Neg() Object {
 	return Int{new(big.Int).Neg(o.Value)}
 }
 
+func (o Int) Pos() Object {
+	return o
+}
+
+func (o Int) Not() Object {
+	return Int{new(big.Int).Not(o.Value)}
+}
+
 func (o Int) LShift(other Object, first bool) (Object, Object) {
 	if first {
 		switch other := other.(type) {
@@ -180,6 +188,36 @@ func (o Int) RShift(other Object, first bool) (Object, Object) {
 		switch other := other.(type) {
 		case Int:
 			return Int{new(big.Int).Rsh(o.Value, uint(other.Value.Uint64()))}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Int) Or(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Int:
+			return Int{new(big.Int).Or(o.Value, other.Value)}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Int) And(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Int:
+			return Int{new(big.Int).And(o.Value, other.Value)}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (o Int) Xor(other Object, first bool) (Object, Object) {
+	if first {
+		switch other := other.(type) {
+		case Int:
+			return Int{new(big.Int).Xor(o.Value, other.Value)}, nil
 		}
 	}
 	return nil, nil

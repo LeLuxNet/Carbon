@@ -174,6 +174,12 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		} else {
 			tok = token.Ampersand
 		}
+	case '|':
+		if l.isNextChar('|') {
+			tok = token.PipePipe
+		} else {
+			tok = token.Pipe
+		}
 	case '^':
 		tok = token.Circumflex
 	case '~':

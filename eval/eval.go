@@ -273,6 +273,12 @@ func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Thro
 		if right, ok := right.(typing.Negable); ok {
 			return right.Neg(), nil
 		}
+	case token.Bang:
+		return typing.Bool{Value: !typing.Truthy(right)}, nil
+	case token.Tilde:
+		if right, ok := right.(typing.Notable); ok {
+			return right.Not(), nil
+		}
 	}
 	return nil, typing.NewError("Not implemented")
 }
@@ -315,12 +321,31 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Th
 	case token.AsteriskAsterisk:
 		return typing.Pow(left, right)
 
+	case token.AmpersandAmpersand:
+		if typing.Truthy(left) {
+			return right, nil
+		} else {
+			return left, nil
+		}
+	case token.PipePipe:
+		if typing.Truthy(left) {
+			return left, nil
+		} else {
+			return right, nil
+		}
+
 	case token.LeftShift:
 		return typing.LShift(left, right)
 	case token.RightShift:
 		return typing.RShift(left, right)
 	case token.URightShift:
 		return typing.URShift(left, right)
+	case token.Pipe:
+		return typing.Or(left, right)
+	case token.Ampersand:
+		return typing.And(left, right)
+	case token.Circumflex:
+		return typing.Xor(left, right)
 	}
 
 	return nil, typing.NewError("Not implemented")

@@ -335,7 +335,7 @@ func (p *Parser) bitwiseOr() (ast.Expression, *errors.SyntaxError) {
 }
 
 func (p *Parser) bitwiseXor() (ast.Expression, *errors.SyntaxError) {
-	return p.loopMatch(p.bitwiseAnd, token.Tilde)
+	return p.loopMatch(p.bitwiseAnd, token.Circumflex)
 }
 
 func (p *Parser) bitwiseAnd() (ast.Expression, *errors.SyntaxError) {

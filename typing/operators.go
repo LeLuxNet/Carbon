@@ -316,6 +316,86 @@ func URShift(a, b Object) (Object, Throwable) {
     return nil, nil
 }
 
+type Andable interface {
+    And(Object, bool) (Object, Object)
+}
+
+func And(a, b Object) (Object, Throwable) {
+    if a, ok := a.(Andable); ok {
+        res, err := a.And(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(Andable); ok {
+        res, err := b.And(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+type Orable interface {
+    Or(Object, bool) (Object, Object)
+}
+
+func Or(a, b Object) (Object, Throwable) {
+    if a, ok := a.(Orable); ok {
+        res, err := a.Or(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(Orable); ok {
+        res, err := b.Or(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
+type Xorable interface {
+    Xor(Object, bool) (Object, Object)
+}
+
+func Xor(a, b Object) (Object, Throwable) {
+    if a, ok := a.(Xorable); ok {
+        res, err := a.Xor(b, true)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        if res != nil {
+            return res, nil
+        }
+    }
+    if b, ok := b.(Xorable); ok {
+        res, err := b.Xor(a, false)
+        if err != nil {
+            return nil, Throw{Data: err}
+        }
+        return res, nil
+    }
+    return nil, nil
+}
+
 type Negable interface {
     Neg() Object
+}
+
+type Posable interface {
+    Pos() Object
+}
+
+type Notable interface {
+    Not() Object
 }

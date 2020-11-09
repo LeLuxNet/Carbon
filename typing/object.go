@@ -11,7 +11,11 @@ func Truthy(object Object) bool {
 		return object.Value
 	case Null:
 		return false
-	default:
-		return true
+	case Int:
+	case Double:
+		return object.Value.Sign() != 0
+	case String:
+		return len(object.Value) != 0
 	}
+	return true
 }

@@ -7,7 +7,6 @@ import (
 
 var _ Object = Double{}
 
-
 type Double struct {
 	Value *big.Float
 }
@@ -173,4 +172,9 @@ func (o Double) Pow(other Object, first bool) (Object, Object) {
 
 func (o Double) Neg() Object {
 	return Double{new(big.Float).Neg(o.Value)}
+
+}
+
+func (o Double) Pos() Object {
+	return o
 }
