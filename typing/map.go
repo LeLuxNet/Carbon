@@ -17,9 +17,7 @@ type Map struct {
 }
 
 func NewMap() Map {
-	return Map{
-		make(map[uint64]Pair),
-	}
+	return Map{make(map[uint64]Pair)}
 }
 
 func (o Map) ToString() string {
@@ -28,7 +26,7 @@ func (o Map) ToString() string {
 		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.ToString(), pair.Value.ToString()))
 	}
 
-	return fmt.Sprintf("{ %s }", strings.Join(pairs, ", "))
+	return fmt.Sprintf("{%s}", strings.Join(pairs, ", "))
 }
 
 func (o Map) Class() Class {

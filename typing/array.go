@@ -94,6 +94,26 @@ func (o Array) GetIndex(index Object) (Object, Object) {
 	return nil, Error{fmt.Sprintf("'%s' is not of type int", index.ToString())}
 }
 
+func (o Array) Contains(value Object) (Object, Throwable) {
+	for _, v := range o.Values {
+		eq, err := Eq(value, v)
+		if err != nil {
+			return nil, err
+		}
+
+		if Truthy(eq) {
+			return Bool{true}, nil
+		}
+	}
+
+	return Bool{false}, nil
+}
+
+func (o Array) Append(value Object) Object {
+	o.Values = append(o.Values, value)
+	return nil
+}
+
 func resolveIntIndex(l int, index Int) (int64, Object) {
 	l64 := int64(l)
 
