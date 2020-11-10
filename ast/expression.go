@@ -33,8 +33,21 @@ type VariableExpression struct {
 }
 
 type CallExpression struct {
-	Callee    Expression
+	Target    Expression
 	Arguments []Expression
+}
+
+type IndexExpression struct {
+	Target Expression
+	Index  Expression
+}
+
+type MapExpression struct {
+	Items map[Expression]Expression
+}
+
+type ArrayExpression struct {
+	Values []Expression
 }
 
 func (e LiteralExpression) astExpression()  {}
@@ -43,3 +56,6 @@ func (e BinaryExpression) astExpression()   {}
 func (e GroupingExpression) astExpression() {}
 func (e VariableExpression) astExpression() {}
 func (e CallExpression) astExpression()     {}
+func (e IndexExpression) astExpression()    {}
+func (e MapExpression) astExpression()      {}
+func (e ArrayExpression) astExpression()    {}

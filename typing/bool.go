@@ -30,7 +30,7 @@ func (o Bool) ToInt() int {
 	return i
 }
 
-func (o Bool) Eq(other Object) (Object, Object) {
+func (o Bool) Eq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Bool:
 		return Bool{o.Value == other.Value}, nil
@@ -42,7 +42,7 @@ func (o Bool) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
-func (o Bool) NEq(other Object) (Object, Object) {
+func (o Bool) NEq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Bool:
 		return Bool{o.Value != other.Value}, nil
@@ -206,4 +206,12 @@ func (o Bool) Pow(other Object, first bool) (Object, Object) {
 		}
 	}
 	return nil, nil
+}
+
+func (o Bool) Hash() uint64 {
+	if o.Value {
+		return 1
+	} else {
+		return 0
+	}
 }

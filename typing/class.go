@@ -14,7 +14,7 @@ func (o Class) Class() Class {
 	return Class{"class"}
 }
 
-func (o Class) Eq(other Object) (Object, Object) {
+func (o Class) Eq(other Object) (Object, Throwable) {
 	if other, ok := other.(Class); ok {
 		// TODO: Better comparison
 		return Bool{o.Class().Name == other.Class().Name}, nil
@@ -22,7 +22,7 @@ func (o Class) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
-func (o Class) NEq(other Object) (Object, Object) {
+func (o Class) NEq(other Object) (Object, Throwable) {
 	if other, ok := other.(Class); ok {
 		// TODO: Better comparison
 		return Bool{o.Class().Name != other.Class().Name}, nil

@@ -379,35 +379,55 @@ func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
 	}
 
 	if p.match(token.LeftParen) {
-		var args []ast.Expression
+		return p.call(expr)
+	} else if p.match(token.LeftBracket) {
+		return p.index(expr)
+	}
 
-		if p.Position < len(p.Tokens) &&
-			p.Tokens[p.Position].Type != token.RightParen {
+	return expr, nil
+}
 
+func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
+	var args []ast.Expression
+
+	if p.Position < len(p.Tokens) &&
+		p.Tokens[p.Position].Type != token.RightParen {
+
+		expr, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, expr)
+
+		for p.match(token.Comma) {
 			expr, err := p.expression()
 			if err != nil {
 				return nil, err
 			}
 			args = append(args, expr)
-
-			for p.match(token.Comma) {
-				expr, err := p.expression()
-				if err != nil {
-					return nil, err
-				}
-				args = append(args, expr)
-			}
 		}
-
-		err := p.consume(token.RightParen, "Expect ')' after arguments")
-		if err != nil {
-			return nil, err
-		}
-
-		return ast.CallExpression{Callee: expr, Arguments: args}, nil
 	}
 
-	return expr, nil
+	err := p.consume(token.RightParen, "Expect ')' after arguments")
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.CallExpression{Target: expr, Arguments: args}, nil
+}
+
+func (p *Parser) index(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
+	index, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(token.RightBracket, "Expect ']' after index")
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.IndexExpression{Target: expr, Index: index}, nil
 }
 
 func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
@@ -444,11 +464,66 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 		}
 
 		return ast.GroupingExpression{Expr: expr}, nil
+	} else if p.match(token.LeftBracket) {
+		return p.array()
+	} else if p.match(token.LeftBrace) {
+		return p.hMap()
 	} else if p.match(token.Identifier) {
 		return ast.VariableExpression{Name: p.previous().Literal}, nil
 	}
 
 	return nil, errors.NewSyntaxError("Expect expression", p.Tokens[p.Position])
+}
+
+func (p *Parser) array() (ast.Expression, *errors.SyntaxError) {
+	var values []ast.Expression
+
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBracket {
+		val, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, val)
+
+		if !p.match(token.Comma) {
+			break
+		}
+	}
+
+	p.consume(token.RightBracket, "Expect ']' after array")
+
+	return ast.ArrayExpression{Values: values}, nil
+}
+
+func (p *Parser) hMap() (ast.Expression, *errors.SyntaxError) {
+	items := make(map[ast.Expression]ast.Expression)
+
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		key, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		err = p.consume(token.Colon, "Expect ':' after key in map")
+		if err != nil {
+			return nil, err
+		}
+
+		value, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+		items[key] = value
+
+		if !p.match(token.Comma) {
+			break
+		}
+	}
+
+	p.consume(token.RightBrace, "Expect '}' after map")
+
+	return ast.MapExpression{Items: items}, nil
 }
 
 func (p *Parser) match(types ...token.TokenType) bool {

@@ -58,10 +58,16 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Thro
 		return expr.Object, nil
 	case ast.GroupingExpression:
 		return evalExpression(expr.Expr, e)
+	case ast.ArrayExpression:
+		return evalArray(expr, e)
+	case ast.MapExpression:
+		return evalMap(expr, e)
 	case ast.VariableExpression:
 		return evalVariable(expr, e)
 	case ast.CallExpression:
 		return evalCall(expr, e)
+	case ast.IndexExpression:
+		return evalIndex(expr, e)
 	case ast.UnaryExpression:
 		return evalUnary(expr, e)
 	case ast.BinaryExpression:
@@ -216,12 +222,47 @@ func evalBlock(expr ast.BlockStmt, e *env.Env) typing.Throwable {
 	return nil
 }
 
+func evalArray(expr ast.ArrayExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	var values []typing.Object
+
+	for _, rVal := range expr.Values {
+		val, err := evalExpression(rVal, e)
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, val)
+	}
+
+	return typing.Array{Values: values}, nil
+}
+
+func evalMap(expr ast.MapExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	res := typing.NewMap()
+
+	for rKey, rValue := range expr.Items {
+		key, err := evalExpression(rKey, e)
+		if err != nil {
+			return nil, err
+		}
+
+		value, err := evalExpression(rValue, e)
+		if err != nil {
+			return nil, err
+		}
+
+		res.SetIndex(key, value)
+	}
+
+	return res, nil
+}
+
 func evalVariable(expr ast.VariableExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	return e.Get(expr.Name)
 }
 
 func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	callee, err := evalExpression(expr.Callee, e)
+	callee, err := evalExpression(expr.Target, e)
 	if err != nil {
 		return nil, err
 	}
@@ -260,6 +301,29 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwa
 		return ret.Data, nil
 	}
 	return nil, err
+}
+
+func evalIndex(expr ast.IndexExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	target, err := evalExpression(expr.Target, e)
+	if err != nil {
+		return nil, err
+	}
+
+	if t, ok := target.(typing.IndexGettable); ok {
+		index, err := evalExpression(expr.Index, e)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err2 := t.GetIndex(index)
+		if err2 != nil {
+			return nil, typing.Throw{Data: err2}
+		} else {
+			return res, nil
+		}
+	} else {
+		return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indices", target.Class().Name))
+	}
 }
 
 func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Throwable) {

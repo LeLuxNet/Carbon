@@ -81,6 +81,8 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		} else {
 			tok = token.Dot
 		}
+	case ':':
+		tok = token.Colon
 	case ';':
 		tok = token.Semicolon
 	case '+':

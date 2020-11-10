@@ -399,3 +399,11 @@ type Posable interface {
 type Notable interface {
     Not() Object
 }
+
+type IndexSettable interface {
+    SetIndex(key, value Object) Object
+}
+
+type IndexGettable interface {
+    GetIndex(key Object) (Object, Object)
+}

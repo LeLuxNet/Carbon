@@ -63,3 +63,13 @@ func <a1>(a, b Object) (Object, Throwable) {
 type <a1>able interface {
     <a1>() Object
 }
+
+#split
+
+type IndexSettable interface {
+    SetIndex(key, value Object) Object
+}
+
+type IndexGettable interface {
+    GetIndex(key Object) (Object, Object)
+}

@@ -19,10 +19,10 @@ func (o Int) Class() Class {
 	return Class{"int"}
 }
 
-func (o Int) Eq(other Object) (Object, Object) {
+func (o Int) Eq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Int:
-		return Bool{o.Value.Cmp(o.Value) == 0}, nil
+		return Bool{o.Value.Cmp(other.Value) == 0}, nil
 	case Double:
 		return Bool{other.Value.Cmp(new(big.Float).SetInt(o.Value)) == 0}, nil
 	case Bool:
@@ -35,10 +35,10 @@ func (o Int) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
-func (o Int) NEq(other Object) (Object, Object) {
+func (o Int) NEq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Int:
-		return Bool{o.Value.Cmp(o.Value) != 0}, nil
+		return Bool{o.Value.Cmp(other.Value) != 0}, nil
 	case Double:
 		return Bool{other.Value.Cmp(new(big.Float).SetInt(o.Value)) != 0}, nil
 	case Bool:
@@ -221,4 +221,9 @@ func (o Int) Xor(other Object, first bool) (Object, Object) {
 		}
 	}
 	return nil, nil
+}
+
+func (o Int) Hash() uint64 {
+	// TODO: Better method
+	return hashString(o.Value.String())
 }

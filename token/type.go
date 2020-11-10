@@ -16,6 +16,7 @@ const (
 	RightBracket
 	Comma
 	Dot
+	Colon
 	Semicolon
 
 	Plus

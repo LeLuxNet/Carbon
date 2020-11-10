@@ -1,5 +1,5 @@
 package typing
 
 type Hashable interface {
-	Hash() int
+	Hash() uint64
 }

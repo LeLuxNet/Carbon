@@ -1,5 +1,7 @@
 package typing
 
+import "fmt"
+
 var _ Object = Error{}
 
 type Error struct {
@@ -22,4 +24,17 @@ func (o ZeroDivisionError) ToString() string {
 
 func (o ZeroDivisionError) Class() Class {
 	return Class{"ZeroDivisionError"}
+}
+
+type IndexOutOfBoundsError struct {
+	Index int64
+	Len   int
+}
+
+func (o IndexOutOfBoundsError) ToString() string {
+	return fmt.Sprintf("Index out of bounds: index %d, len %d", o.Index, o.Len)
+}
+
+func (o IndexOutOfBoundsError) Class() Class {
+	return Class{"IndexOutOfBoundsError"}
 }

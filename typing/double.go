@@ -28,7 +28,7 @@ func (o Double) Class() Class {
 	return Class{"double"}
 }
 
-func (o Double) Eq(other Object) (Object, Object) {
+func (o Double) Eq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Int:
 		return Bool{o.Value.Cmp(new(big.Float).SetInt(other.Value)) == 0}, nil
@@ -44,7 +44,7 @@ func (o Double) Eq(other Object) (Object, Object) {
 	return nil, nil
 }
 
-func (o Double) NEq(other Object) (Object, Object) {
+func (o Double) NEq(other Object) (Object, Throwable) {
 	switch other := other.(type) {
 	case Int:
 		return Bool{o.Value.Cmp(new(big.Float).SetInt(other.Value)) != 0}, nil
@@ -177,4 +177,9 @@ func (o Double) Neg() Object {
 
 func (o Double) Pos() Object {
 	return o
+}
+
+func (o Double) Hash() uint64 {
+	// TODO: Better method
+	return hashString(o.Value.String())
 }

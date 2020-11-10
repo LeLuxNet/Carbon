@@ -2,6 +2,7 @@ package typing
 
 import (
 	"github.com/leluxnet/carbon/math"
+	"hash/fnv"
 	"math/big"
 	"strings"
 )
@@ -20,14 +21,14 @@ func (o String) Class() Class {
 	return Class{"string"}
 }
 
-func (o String) Eq(other Object) (Object, Object) {
+func (o String) Eq(other Object) (Object, Throwable) {
 	if other, ok := other.(String); ok {
 		return Bool{o.Value == other.Value}, nil
 	}
 	return nil, nil
 }
 
-func (o String) NEq(other Object) (Object, Object) {
+func (o String) NEq(other Object) (Object, Throwable) {
 	if other, ok := other.(String); ok {
 		return Bool{o.Value != other.Value}, nil
 	}
@@ -50,6 +51,30 @@ func (o String) Mul(other Object, _ bool) (Object, Object) {
 			b.WriteString(o.Value)
 		}
 		return String{b.String()}, nil
+	}
+	return nil, nil
+}
+
+func (o String) Hash() uint64 {
+	return hashString(o.Value)
+}
+
+func hashString(s string) uint64 {
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(s))
+	return h.Sum64()
+}
+
+func (o String) GetIndex(key Object) (Object, Object) {
+	switch key := key.(type) {
+	case Int:
+		i, err := resolveIntIndex(len(o.Value), key)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: Use char instead later
+		return String{string(o.Value[i])}, nil
 	}
 	return nil, nil
 }
