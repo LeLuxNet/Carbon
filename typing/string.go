@@ -68,13 +68,14 @@ func hashString(s string) uint64 {
 func (o String) GetIndex(key Object) (Object, Object) {
 	switch key := key.(type) {
 	case Int:
-		i, err := resolveIntIndex(len(o.Value), key)
+		chars := []rune(o.Value)
+
+		i, err := resolveIntIndex(len(chars), key)
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO: Use char instead later
-		return String{string(o.Value[i])}, nil
+		return Char{chars[i]}, nil
 	}
 	return nil, nil
 }

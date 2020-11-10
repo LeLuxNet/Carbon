@@ -35,7 +35,6 @@ func (s SyntaxError) ToString(source string) string {
 }
 
 func NewSyntaxError(msg string, token token.Token) *SyntaxError {
-	fmt.Println(token)
 	return &SyntaxError{Message: msg, Line: token.Line, Column: token.Column,
 		LineLen: token.ToLine - token.Line, ColumnLen: token.ToColumn - token.Column}
 }

@@ -464,6 +464,11 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 		}
 
 		return ast.GroupingExpression{Expr: expr}, nil
+	} else if p.match(token.Char) {
+		// TODO: Maybe use types from lexing directly
+		c := []rune(p.previous().Literal)[0]
+
+		return ast.LiteralExpression{Object: typing.Char{Value: c}}, nil
 	} else if p.match(token.LeftBracket) {
 		return p.array()
 	} else if p.match(token.LeftBrace) {

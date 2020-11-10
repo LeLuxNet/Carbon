@@ -322,7 +322,7 @@ func evalIndex(expr ast.IndexExpression, e *env.Env) (typing.Object, typing.Thro
 			return res, nil
 		}
 	} else {
-		return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indices", target.Class().Name))
+		return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", target.Class().Name))
 	}
 }
 

@@ -68,6 +68,7 @@ const (
 	Int
 	Double
 	String
+	Char
 
 	True
 	False

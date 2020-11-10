@@ -199,6 +199,9 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 	case '"':
 		tok, err := l.string()
 		return tok, true, err
+	case '\'':
+		tok, err := l.char()
+		return tok, true, err
 	default:
 		if isDigit(c) {
 			num := l.number()
@@ -263,6 +266,29 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 
 	return &token.Token{Type: token.String, Literal: string(l.Chars[pos : l.Position-1]),
 		Line: l.Line, Column: l.Column}, nil
+}
+
+func (l *Lexer) char() (*token.Token, *errors.SyntaxError) {
+	line := l.Line
+
+	c := l.Chars[l.Position]
+
+	l.Position++
+	l.Column++
+
+	if !l.isEnd() && l.Chars[l.Position] != '\'' {
+		l.waitForChar('\'')
+
+		l.Position++
+		l.Column++
+
+		return nil, &errors.SyntaxError{Message: "Char is longer than one character or not closed", Line: l.Line, Column: l.Column}
+	}
+
+	l.Position++
+	l.Column++
+
+	return &token.Token{Type: token.Char, Literal: string(c), Line: line, Column: l.Column, ToLine: l.Line, ToColumn: l.Column}, nil
 }
 
 func (l *Lexer) number() token.Token {
