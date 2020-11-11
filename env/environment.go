@@ -21,9 +21,8 @@ func NewEnv() *Env {
 }
 
 func (e Env) Declare(name string, class *typing.Class) typing.Throwable {
-	_, ok := e.vars[name]
-	if ok {
-		return typing.NewError("Already declared")
+	if _, ok := e.vars[name]; ok {
+		return typing.NewError(fmt.Sprintf("Variable '%s' is already declared", name))
 	}
 
 	e.vars[name] = &Variable{Type: class, Value: typing.Null{}, Nullable: true}
@@ -31,9 +30,8 @@ func (e Env) Declare(name string, class *typing.Class) typing.Throwable {
 }
 
 func (e Env) Define(name string, object typing.Object, class *typing.Class, nullable bool, constant bool) typing.Throwable {
-	_, ok := e.vars[name]
-	if ok {
-		return typing.NewError("Variable is already declared")
+	if _, ok := e.vars[name]; ok {
+		return typing.NewError(fmt.Sprintf("Variable '%s' is already declared", name))
 	}
 
 	if class == nil {
@@ -46,13 +44,15 @@ func (e Env) Define(name string, object typing.Object, class *typing.Class, null
 }
 
 func (e Env) Set(name string, object typing.Object) typing.Throwable {
-	v, ok := e.vars[name]
-	if ok {
-		if object.Class() == *v.Type || (object.Class().Name == "null" && v.Nullable) {
+	if v, ok := e.vars[name]; ok {
+		if v.Constant {
+			return typing.NewError(fmt.Sprintf("Variable '%s' is constant and can't be reassigned", name))
+		} else if object.Class() == *v.Type || (object.Class().Name == "null" && v.Nullable) {
 			v.Value = object
 			return nil
 		} else {
-			return typing.NewError("Variable of type '" + v.Type.Name + "' cannot be assigned to '" + object.Class().Name + "'")
+			return typing.NewError(fmt.Sprintf("Variable '%s' of type '%s' can't be assigned to '%s'",
+				name, v.Type.Name, object.Class().Name))
 		}
 	}
 
@@ -64,9 +64,7 @@ func (e Env) Set(name string, object typing.Object) typing.Throwable {
 }
 
 func (e Env) Get(name string) (typing.Object, typing.Throwable) {
-	v, ok := e.vars[name]
-
-	if ok {
+	if v, ok := e.vars[name]; ok {
 		return v.Value, nil
 	}
 
