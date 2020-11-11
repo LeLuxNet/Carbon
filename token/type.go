@@ -10,7 +10,11 @@ const (
 
 	LeftParen
 	RightParen
+
 	LeftBrace
+	LeftMBrace
+	LeftSBrace
+
 	RightBrace
 	LeftBracket
 	RightBracket

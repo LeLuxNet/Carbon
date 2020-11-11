@@ -57,6 +57,7 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 	l.Position++
 	l.Column++
 
+	def := false
 	switch c {
 	case '(':
 		tok = token.LeftParen
@@ -202,7 +203,23 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 	case '\'':
 		tok, err := l.char()
 		return tok, true, err
+	case 'm':
+		if l.isNextChar('{') {
+			tok = token.LeftMBrace
+		} else {
+			def = true
+		}
+	case 's':
+		if l.isNextChar('{') {
+			tok = token.LeftSBrace
+		} else {
+			def = true
+		}
 	default:
+		def = true
+	}
+
+	if def {
 		if isDigit(c) {
 			num := l.number()
 			return &num, true, nil
@@ -213,6 +230,7 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 			return nil, false, &errors.SyntaxError{Message: "Unexpected char", Line: l.Line, Column: l.Column - 1}
 		}
 	}
+
 	return &token.Token{Type: tok, Line: fromLine, Column: fromCol, ToLine: l.Line, ToColumn: l.Column}, semi, nil
 }
 

@@ -471,8 +471,10 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 		return ast.LiteralExpression{Object: typing.Char{Value: c}}, nil
 	} else if p.match(token.LeftBracket) {
 		return p.array()
-	} else if p.match(token.LeftBrace) {
+	} else if p.match(token.LeftMBrace) {
 		return p.hMap()
+	} else if p.match(token.LeftSBrace) {
+		return p.set()
 	} else if p.match(token.Identifier) {
 		return ast.VariableExpression{Name: p.previous().Literal}, nil
 	}
@@ -529,6 +531,27 @@ func (p *Parser) hMap() (ast.Expression, *errors.SyntaxError) {
 	p.consume(token.RightBrace, "Expect '}' after map")
 
 	return ast.MapExpression{Items: items}, nil
+}
+
+func (p *Parser) set() (ast.Expression, *errors.SyntaxError) {
+	var values []ast.Expression
+
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		val, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, val)
+
+		if !p.match(token.Comma) {
+			break
+		}
+	}
+
+	p.consume(token.RightBrace, "Expect '}' after set")
+
+	return ast.SetExpression{Values: values}, nil
 }
 
 func (p *Parser) match(types ...token.TokenType) bool {
