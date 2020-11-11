@@ -510,16 +510,28 @@ func (p *Parser) hMap() (ast.Expression, *errors.SyntaxError) {
 			return nil, err
 		}
 
-		err = p.consume(token.Colon, "Expect ':' after key in map")
-		if err != nil {
-			return nil, err
-		}
+		if len(p.Tokens) > p.Position &&
+			p.Tokens[p.Position].Type == token.Comma ||
+			p.Tokens[p.Position].Type == token.RightBrace {
 
-		value, err := p.expression()
-		if err != nil {
-			return nil, err
+			if key, ok := key.(ast.VariableExpression); ok {
+				sKey := ast.LiteralExpression{Object: typing.String{Value: key.Name}}
+				items[sKey] = key
+			} else {
+				return nil, errors.NewSyntaxError("You can only use the key shorthand if you provide a variable", p.Tokens[p.Position])
+			}
+		} else {
+			err := p.consume(token.Colon, "Expect ':' after key in map")
+			if err != nil {
+				return nil, err
+			}
+
+			value, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			items[key] = value
 		}
-		items[key] = value
 
 		if !p.match(token.Comma) {
 			break
