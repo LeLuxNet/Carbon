@@ -571,6 +571,10 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 			return nil, err
 		}
 
+		if eBody, ok := body.(ast.ExpressionStmt); ok {
+			body = ast.ReturnStmt{Expr: eBody.Expr}
+		}
+
 		var params []ast.Parameter
 		for _, param := range values {
 			if param, ok := param.(ast.VariableExpression); ok {

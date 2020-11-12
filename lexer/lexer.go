@@ -5,7 +5,7 @@ import (
 	"github.com/leluxnet/carbon/token"
 )
 
-const AutoSemi = false
+const AutoSemi = true
 
 type Lexer struct {
 	Position int
