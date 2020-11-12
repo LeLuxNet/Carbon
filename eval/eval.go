@@ -62,6 +62,8 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Thro
 		return evalArray(expr, e)
 	case ast.MapExpression:
 		return evalMap(expr, e)
+	case ast.SetExpression:
+		return evalSet(expr, e)
 	case ast.TupleExpression:
 		return evalTuple(expr, e)
 	case ast.VariableExpression:
@@ -225,15 +227,15 @@ func evalBlock(expr ast.BlockStmt, e *env.Env) typing.Throwable {
 }
 
 func evalArray(expr ast.ArrayExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	var values []typing.Object
+	values := make([]typing.Object, len(expr.Values))
 
-	for _, rVal := range expr.Values {
+	for i, rVal := range expr.Values {
 		val, err := evalExpression(rVal, e)
 		if err != nil {
 			return nil, err
 		}
 
-		values = append(values, val)
+		values[i] = val
 	}
 
 	return typing.Array{Values: values}, nil
@@ -254,6 +256,21 @@ func evalMap(expr ast.MapExpression, e *env.Env) (typing.Object, typing.Throwabl
 		}
 
 		res.SetIndex(key, value)
+	}
+
+	return res, nil
+}
+
+func evalSet(expr ast.SetExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	res := typing.NewSet()
+
+	for _, rVal := range expr.Values {
+		val, err := evalExpression(rVal, e)
+		if err != nil {
+			return nil, err
+		}
+
+		res.Append(val)
 	}
 
 	return res, nil
