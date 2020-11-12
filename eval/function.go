@@ -32,7 +32,11 @@ func (o Function) Call(args []typing.Object) typing.Throwable {
 }
 
 func (o Function) ToString() string {
-	return "function<" + o.Name + ">"
+	if o.Name == "" {
+		return "lambda function"
+	} else {
+		return "function<" + o.Name + ">"
+	}
 }
 
 func (o Function) Class() typing.Class {

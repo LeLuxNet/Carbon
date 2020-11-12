@@ -23,6 +23,8 @@ const (
 	Colon
 	Semicolon
 
+	Arrow
+
 	Plus
 	PlusPlus
 	PlusEqual

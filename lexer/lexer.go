@@ -5,6 +5,8 @@ import (
 	"github.com/leluxnet/carbon/token"
 )
 
+const AutoSemi = false
+
 type Lexer struct {
 	Position int
 	Source   string
@@ -25,7 +27,7 @@ func (l *Lexer) ScanTokens() ([]token.Token, []errors.SyntaxError) {
 	var err *errors.SyntaxError
 
 	for l.Position < len(l.Chars) {
-		tok, semi, err = l.scanToken(semi)
+		tok, semi, err = l.scanToken(AutoSemi && semi)
 		if err != nil {
 			errs = append(errs, *err)
 		} else if tok.Type != token.Nothing {
@@ -33,7 +35,7 @@ func (l *Lexer) ScanTokens() ([]token.Token, []errors.SyntaxError) {
 		}
 	}
 
-	if semi {
+	if AutoSemi && semi {
 		tokens = append(tokens, token.Token{
 			Type:     token.Semicolon,
 			Line:     l.Line,
@@ -138,7 +140,6 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		} else {
 			tok = token.Bang
 		}
-
 	case '=':
 		if l.isNextChar('=') {
 			if l.isNextChar('=') {
@@ -146,10 +147,11 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 			} else {
 				tok = token.EqualEqual
 			}
+		} else if l.isNextChar('>') {
+			tok = token.Arrow
 		} else {
 			tok = token.Equal
 		}
-
 	case '<':
 		if l.isNextChar('=') {
 			tok = token.LessEqual
@@ -170,7 +172,6 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		} else {
 			tok = token.Greater
 		}
-
 	case '&':
 		if l.isNextChar('&') {
 			tok = token.AmpersandAmpersand

@@ -66,6 +66,8 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Thro
 		return evalSet(expr, e)
 	case ast.TupleExpression:
 		return evalTuple(expr, e)
+	case ast.LambdaExpression:
+		return evalLambda(expr, e)
 	case ast.VariableExpression:
 		return evalVariable(expr, e)
 	case ast.CallExpression:
@@ -293,6 +295,16 @@ func evalTuple(expr ast.TupleExpression, e *env.Env) (typing.Object, typing.Thro
 
 func evalVariable(expr ast.VariableExpression, e *env.Env) (typing.Object, typing.Throwable) {
 	return e.Get(expr.Name)
+}
+
+func evalLambda(expr ast.LambdaExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	fun := Function{
+		PData: expr.Data,
+		Stmt:  expr.Body,
+		Env:   e,
+	}
+
+	return fun, nil
 }
 
 func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwable) {

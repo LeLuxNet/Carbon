@@ -58,6 +58,11 @@ type TupleExpression struct {
 	Values []Expression
 }
 
+type LambdaExpression struct {
+	Data ParamData
+	Body Statement
+}
+
 func (e LiteralExpression) astExpression()  {}
 func (e UnaryExpression) astExpression()    {}
 func (e BinaryExpression) astExpression()   {}
@@ -69,3 +74,4 @@ func (e MapExpression) astExpression()      {}
 func (e ArrayExpression) astExpression()    {}
 func (e SetExpression) astExpression()      {}
 func (e TupleExpression) astExpression()    {}
+func (e LambdaExpression) astExpression()   {}

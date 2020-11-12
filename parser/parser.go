@@ -32,6 +32,10 @@ func (p *Parser) Parse() ([]ast.Statement, []errors.SyntaxError) {
 }
 
 func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
+	return p.semiStatement(true)
+}
+
+func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	var res ast.Statement
 	var err *errors.SyntaxError
 
@@ -79,9 +83,11 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	err = p.consume(token.Semicolon, "Semicolon needed")
-	if err != nil {
-		return nil, err
+	if semi {
+		err = p.consume(token.Semicolon, "Semicolon needed")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return res, nil
@@ -551,7 +557,30 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 		}
 	}
 
-	if len(values) == 1 {
+	if len(p.Tokens) > p.Position+1 && p.Tokens[p.Position+1].Type == token.Arrow {
+		// Lambda
+		err := p.consume(token.RightParen, "Expect ')' after parameters")
+		if err != nil {
+			return nil, err
+		}
+
+		p.Position++
+
+		body, err := p.semiStatement(false)
+		if err != nil {
+			return nil, err
+		}
+
+		var params []ast.Parameter
+		for _, param := range values {
+			if param, ok := param.(ast.VariableExpression); ok {
+				params = append(params, ast.Parameter{Name: param.Name})
+			}
+		}
+
+		return ast.LambdaExpression{Data: ast.ParamData{Params: params}, Body: body}, nil
+	} else if len(values) == 1 {
+		// Grouping expression
 		err := p.consume(token.RightParen, "Expect ')' after expression")
 		if err != nil {
 			return nil, err
@@ -559,6 +588,7 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 
 		return ast.GroupingExpression{Expr: values[0]}, nil
 	} else {
+		// Tuple
 		err := p.consume(token.RightParen, "Expect ')' after tuple")
 		if err != nil {
 			return nil, err
@@ -613,16 +643,16 @@ func (p *Parser) consume(t token.TokenType, msg string) *errors.SyntaxError {
 		return nil
 	}
 
-	if p.Position < len(p.Tokens) {
-		tok := p.Tokens[p.Position]
-		return errors.NewSyntaxError(msg, tok)
-	} else {
-		tok := p.Tokens[p.Position-1]
-		return &errors.SyntaxError{
-			Message: msg,
-			Line:    tok.Line,
-			Column:  tok.Column + 1,
-		}
+	i := p.Position - 1
+	if p.Position > len(p.Tokens) {
+		i = len(p.Tokens) - 1
+	}
+
+	tok := p.Tokens[i]
+	return &errors.SyntaxError{
+		Message: msg,
+		Line:    tok.Line,
+		Column:  tok.Column + 1,
 	}
 }
 
