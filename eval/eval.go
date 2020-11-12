@@ -62,6 +62,8 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Thro
 		return evalArray(expr, e)
 	case ast.MapExpression:
 		return evalMap(expr, e)
+	case ast.TupleExpression:
+		return evalTuple(expr, e)
 	case ast.VariableExpression:
 		return evalVariable(expr, e)
 	case ast.CallExpression:
@@ -255,6 +257,21 @@ func evalMap(expr ast.MapExpression, e *env.Env) (typing.Object, typing.Throwabl
 	}
 
 	return res, nil
+}
+
+func evalTuple(expr ast.TupleExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	var values []typing.Object
+
+	for _, rVal := range expr.Values {
+		val, err := evalExpression(rVal, e)
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, val)
+	}
+
+	return typing.Tuple{Values: values}, nil
 }
 
 func evalVariable(expr ast.VariableExpression, e *env.Env) (typing.Object, typing.Throwable) {

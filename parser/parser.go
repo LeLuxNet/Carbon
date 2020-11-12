@@ -453,17 +453,7 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 	} else if p.match(token.String) {
 		return ast.LiteralExpression{Object: typing.String{Value: p.previous().Literal}}, nil
 	} else if p.match(token.LeftParen) {
-		expr, err := p.expression()
-		if err != nil {
-			return nil, err
-		}
-
-		err = p.consume(token.RightParen, "Expect ')' after expression")
-		if err != nil {
-			return nil, err
-		}
-
-		return ast.GroupingExpression{Expr: expr}, nil
+		return p.tuple()
 	} else if p.match(token.Char) {
 		// TODO: Maybe use types from lexing directly
 		c := []rune(p.previous().Literal)[0]
@@ -541,6 +531,39 @@ func (p *Parser) hMap() (ast.Expression, *errors.SyntaxError) {
 	p.consume(token.RightBrace, "Expect '}' after map")
 
 	return ast.MapExpression{Items: items}, nil
+}
+
+func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
+	var values []ast.Expression
+
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightParen {
+		val, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, val)
+
+		if !p.match(token.Comma) {
+			break
+		}
+	}
+
+	if len(values) == 1 {
+		err := p.consume(token.RightParen, "Expect ')' after expression")
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.GroupingExpression{Expr: values[0]}, nil
+	} else {
+		err := p.consume(token.RightParen, "Expect ')' after tuple")
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.TupleExpression{Values: values}, nil
+	}
 }
 
 func (p *Parser) match(types ...token.TokenType) bool {

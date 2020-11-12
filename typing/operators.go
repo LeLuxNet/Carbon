@@ -407,3 +407,11 @@ type IndexSettable interface {
 type IndexGettable interface {
     GetIndex(key Object) (Object, Object)
 }
+
+type Appendable interface {
+    Append(Object) Object
+}
+
+type Containable interface {
+    Contains(Object) (Object, Throwable)
+}

@@ -50,6 +50,10 @@ type ArrayExpression struct {
 	Values []Expression
 }
 
+type TupleExpression struct {
+	Values []Expression
+}
+
 func (e LiteralExpression) astExpression()  {}
 func (e UnaryExpression) astExpression()    {}
 func (e BinaryExpression) astExpression()   {}
@@ -59,3 +63,4 @@ func (e CallExpression) astExpression()     {}
 func (e IndexExpression) astExpression()    {}
 func (e MapExpression) astExpression()      {}
 func (e ArrayExpression) astExpression()    {}
+func (e TupleExpression) astExpression()    {}
