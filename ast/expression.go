@@ -42,6 +42,11 @@ type IndexExpression struct {
 	Index  Expression
 }
 
+type PropertyExpression struct {
+	Target Expression
+	Name   string
+}
+
 type MapExpression struct {
 	Items map[Expression]Expression
 }
@@ -70,6 +75,7 @@ func (e GroupingExpression) astExpression() {}
 func (e VariableExpression) astExpression() {}
 func (e CallExpression) astExpression()     {}
 func (e IndexExpression) astExpression()    {}
+func (e PropertyExpression) astExpression() {}
 func (e MapExpression) astExpression()      {}
 func (e ArrayExpression) astExpression()    {}
 func (e SetExpression) astExpression()      {}

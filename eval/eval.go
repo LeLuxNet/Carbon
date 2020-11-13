@@ -74,6 +74,8 @@ func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Thro
 		return evalCall(expr, e)
 	case ast.IndexExpression:
 		return evalIndex(expr, e)
+	case ast.PropertyExpression:
+		return evalProperty(expr, e)
 	case ast.UnaryExpression:
 		return evalUnary(expr, e)
 	case ast.BinaryExpression:
@@ -364,12 +366,21 @@ func evalIndex(expr ast.IndexExpression, e *env.Env) (typing.Object, typing.Thro
 		res, err2 := t.GetIndex(index)
 		if err2 != nil {
 			return nil, typing.Throw{Data: err2}
-		} else {
-			return res, nil
 		}
-	} else {
-		return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", target.Class().Name))
+		return res, nil
 	}
+
+	return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", target.Class().Name))
+}
+
+func evalProperty(expr ast.PropertyExpression, e *env.Env) (typing.Object, typing.Throwable) {
+	target, err := evalExpression(expr.Target, e)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Get property
+	return target, nil
 }
 
 func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Throwable) {

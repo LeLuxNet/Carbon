@@ -384,29 +384,21 @@ func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	return p.primaryPart(expr)
-}
-func (p *Parser) primaryPart(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
-	var err *errors.SyntaxError
-	if p.match(token.LeftParen) {
-		expr, err = p.call(expr)
-	} else if p.match(token.LeftBracket) {
-		expr, err = p.index(expr)
-	} else {
-		return expr, nil
-	}
+	for {
+		if p.match(token.LeftParen) {
+			expr, err = p.call(expr)
+		} else if p.match(token.LeftBracket) {
+			expr, err = p.index(expr)
+		} else if p.match(token.Dot) {
+			expr, err = p.property(expr)
+		} else {
+			return expr, nil
+		}
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	if len(p.Tokens) > p.Position &&
-		(p.Tokens[p.Position].Type == token.LeftParen ||
-			p.Tokens[p.Position].Type == token.LeftBracket) {
-		return p.primaryPart(expr)
-	}
-
-	return expr, nil
 }
 
 func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
@@ -450,6 +442,16 @@ func (p *Parser) index(expr ast.Expression) (ast.Expression, *errors.SyntaxError
 	}
 
 	return ast.IndexExpression{Target: expr, Index: index}, nil
+}
+
+func (p *Parser) property(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, "Expect function name")
+	if err != nil {
+		return nil, err
+	}
+	name := p.previous().Literal
+
+	return ast.PropertyExpression{Target: expr, Name: name}, nil
 }
 
 func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
