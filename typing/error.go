@@ -13,7 +13,7 @@ func (o Error) ToString() string {
 }
 
 func (o Error) Class() Class {
-	return Class{"Error"}
+	return NewNativeClass("Error", Properties{})
 }
 
 type ZeroDivisionError struct{}
@@ -23,7 +23,7 @@ func (o ZeroDivisionError) ToString() string {
 }
 
 func (o ZeroDivisionError) Class() Class {
-	return Class{"ZeroDivisionError"}
+	return NewNativeClass("ZeroDivisionError", Properties{})
 }
 
 type IndexOutOfBoundsError struct {
@@ -36,5 +36,5 @@ func (o IndexOutOfBoundsError) ToString() string {
 }
 
 func (o IndexOutOfBoundsError) Class() Class {
-	return Class{"IndexOutOfBoundsError"}
+	return NewNativeClass("IndexOutOfBoundsError", Properties{})
 }

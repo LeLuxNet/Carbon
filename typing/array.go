@@ -22,7 +22,7 @@ func (o Array) ToString() string {
 }
 
 func (o Array) Class() Class {
-	return Class{"array"}
+	return NewNativeClass("array", Properties{})
 }
 
 func (o Array) Eq(other Object) (Object, Throwable) {

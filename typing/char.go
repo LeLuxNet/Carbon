@@ -17,7 +17,7 @@ func (o Char) ToString() string {
 }
 
 func (o Char) Class() Class {
-	return Class{"char"}
+	return NewNativeClass("char", Properties{})
 }
 
 func (o Char) Eq(other Object) (Object, Throwable) {

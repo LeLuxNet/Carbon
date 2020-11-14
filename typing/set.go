@@ -25,7 +25,7 @@ func (o Set) ToString() string {
 }
 
 func (o Set) Class() Class {
-	return Class{"set"}
+	return NewNativeClass("set", Properties{})
 }
 
 func (o Set) Contains(value Object) (Object, Throwable) {

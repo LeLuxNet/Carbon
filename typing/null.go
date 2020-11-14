@@ -9,7 +9,7 @@ func (o Null) ToString() string {
 }
 
 func (o Null) Class() Class {
-	return Class{"null"}
+	return NewNativeClass("null", Properties{})
 }
 
 func (o Null) Eq(other Object) (Object, Throwable) {

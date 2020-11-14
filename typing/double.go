@@ -25,7 +25,7 @@ func (o Double) ToString() string {
 }
 
 func (o Double) Class() Class {
-	return Class{"double"}
+	return NewNativeClass("double", Properties{})
 }
 
 func (o Double) Eq(other Object) (Object, Throwable) {

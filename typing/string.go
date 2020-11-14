@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var StringClass = NewNativeClass("string", Properties{})
+
 var _ Object = String{}
 
 type String struct {
@@ -18,7 +20,7 @@ func (o String) ToString() string {
 }
 
 func (o String) Class() Class {
-	return Class{"string"}
+	return StringClass
 }
 
 func (o String) Eq(other Object) (Object, Throwable) {

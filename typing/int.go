@@ -16,7 +16,7 @@ func (o Int) ToString() string {
 }
 
 func (o Int) Class() Class {
-	return Class{"int"}
+	return NewNativeClass("int", Properties{})
 }
 
 func (o Int) Eq(other Object) (Object, Throwable) {

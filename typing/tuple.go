@@ -21,7 +21,7 @@ func (o Tuple) ToString() string {
 }
 
 func (o Tuple) Class() Class {
-	return Class{"tuple"}
+	return NewNativeClass("tuple", Properties{})
 }
 
 func (o Tuple) Eq(other Object) (Object, Throwable) {

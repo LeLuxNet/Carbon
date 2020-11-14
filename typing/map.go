@@ -30,7 +30,7 @@ func (o Map) ToString() string {
 }
 
 func (o Map) Class() Class {
-	return Class{"map"}
+	return NewNativeClass("map", Properties{})
 }
 
 func (o Map) SetIndex(key, value Object) Object {

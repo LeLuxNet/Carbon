@@ -13,7 +13,7 @@ var Input = BFunction{
 	data: ast.ParamData{
 		Params: []ast.Parameter{{
 			Name:    "text",
-			Type:    typing.String{}.Class(),
+			Type:    typing.StringClass,
 			Default: typing.String{}}},
 	},
 	call: func(args []typing.Object) typing.Throwable {

@@ -17,7 +17,7 @@ func (o Bool) ToString() string {
 }
 
 func (o Bool) Class() Class {
-	return Class{"bool"}
+	return NewNativeClass("bool", Properties{})
 }
 
 func (o Bool) ToInt() int {

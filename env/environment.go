@@ -47,7 +47,7 @@ func (e Env) Set(name string, object typing.Object) typing.Throwable {
 	if v, ok := e.vars[name]; ok {
 		if v.Constant {
 			return typing.NewError(fmt.Sprintf("Variable '%s' is constant and can't be reassigned", name))
-		} else if object.Class() == *v.Type || (object.Class().Name == "null" && v.Nullable) {
+		} else if v.Type.IsInstance(object) || (object.Class().Name == "null" && v.Nullable) {
 			v.Value = object
 			return nil
 		} else {

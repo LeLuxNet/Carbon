@@ -15,5 +15,5 @@ func (o Slice) ToString() string {
 }
 
 func (o Slice) Class() Class {
-	return Class{"slice"}
+	return NewNativeClass("slice", Properties{})
 }
