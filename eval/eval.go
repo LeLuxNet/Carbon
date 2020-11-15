@@ -310,12 +310,25 @@ func evalLambda(expr ast.LambdaExpression, e *env.Env) (typing.Object, typing.Th
 }
 
 func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	callee, err := evalExpression(expr.Target, e)
+	var this typing.Object
+	var callee typing.Object
+	var err typing.Throwable
+
+	if prop, ok := expr.Target.(ast.PropertyExpression); ok {
+		this, err = evalExpression(prop.Target, e)
+		if err != nil {
+			return nil, err
+		}
+
+		callee, err = getProperty(this, prop.Name)
+	} else {
+		callee, err = evalExpression(expr.Target, e)
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	fun, ok := callee.(ast.Callable)
+	fun, ok := callee.(typing.Callable)
 	if !ok {
 		return nil, typing.NewError("You can only call functions")
 	}
@@ -344,7 +357,7 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwa
 		return nil, typing.NewError("Less args needed")
 	}
 
-	err = fun.Call(args)
+	err = fun.Call(this, args)
 	if ret, ok := err.(typing.Return); ok {
 		return ret.Data, nil
 	}
@@ -379,8 +392,16 @@ func evalProperty(expr ast.PropertyExpression, e *env.Env) (typing.Object, typin
 		return nil, err
 	}
 
-	// TODO: Get property
-	return target, nil
+	return getProperty(target, expr.Name)
+}
+
+func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable) {
+	p, ok := o.Class().Properties[name]
+	if !ok {
+		return nil, typing.NewError(fmt.Sprintf("'%s' has no such property '%s'", o.ToString(), name))
+	}
+
+	return p, nil
 }
 
 func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Throwable) {

@@ -3,20 +3,19 @@ package builtin
 import (
 	"bufio"
 	"fmt"
-	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/typing"
 	"os"
 )
 
-var Input = BFunction{
+var Input = typing.BFunction{
 	Name: "input",
-	data: ast.ParamData{
-		Params: []ast.Parameter{{
+	Dat: typing.ParamData{
+		Params: []typing.Parameter{{
 			Name:    "text",
 			Type:    typing.StringClass,
 			Default: typing.String{}}},
 	},
-	call: func(args []typing.Object) typing.Throwable {
+	Cal: func(_ typing.Object, args []typing.Object) typing.Throwable {
 		scanner := bufio.NewScanner(os.Stdin)
 
 		if len(args) > 0 {

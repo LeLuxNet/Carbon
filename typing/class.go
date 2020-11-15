@@ -2,6 +2,13 @@ package typing
 
 var _ Object = Class{}
 
+var toString = BFunction{Name: "toString", Cal: func(this Object, _ []Object) Throwable {
+	return Return{String{this.ToString()}}
+}}
+var class = BFunction{Name: "Class", Cal: func(this Object, _ []Object) Throwable {
+	return Return{this.Class()}
+}}
+
 type Properties = map[string]Object
 type Class struct {
 	Name string
@@ -10,8 +17,8 @@ type Class struct {
 
 func NewNativeClass(name string, properties Properties) Class {
 	// TODO: Set default functions
-	properties["toString"] = nil
-	properties["Class"] = nil
+	properties["toString"] = toString
+	properties["Class"] = class
 
 	return Class{Name: name, Properties: properties}
 }

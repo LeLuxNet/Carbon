@@ -64,7 +64,7 @@ type TupleExpression struct {
 }
 
 type LambdaExpression struct {
-	Data ParamData
+	Data typing.ParamData
 	Body Statement
 }
 

@@ -2,17 +2,16 @@ package builtin
 
 import (
 	"fmt"
-	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/typing"
 	"strings"
 )
 
-var Print = BFunction{
+var Print = typing.BFunction{
 	Name: "print",
-	data: ast.ParamData{
+	Dat: typing.ParamData{
 		Args: "args",
 	},
-	call: func(args []typing.Object) typing.Throwable {
+	Cal: func(_ typing.Object, args []typing.Object) typing.Throwable {
 		if len(args) == 0 {
 			return nil
 		}

@@ -244,7 +244,7 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	var params []ast.Parameter
+	var params []typing.Parameter
 	if p.Position < len(p.Tokens) &&
 		p.Tokens[p.Position].Type != token.RightParen {
 		for {
@@ -252,7 +252,7 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 			if err != nil {
 				return nil, err
 			}
-			params = append(params, ast.Parameter{Name: p.previous().Literal})
+			params = append(params, typing.Parameter{Name: p.previous().Literal})
 
 			if !p.match(token.Comma) {
 				break
@@ -272,7 +272,7 @@ func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
 
 	return ast.FunStmt{
 		Name: name,
-		Data: ast.ParamData{Params: params},
+		Data: typing.ParamData{Params: params},
 		Body: body,
 	}, nil
 }
@@ -593,14 +593,14 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 			body = ast.ReturnStmt{Expr: eBody.Expr}
 		}
 
-		var params []ast.Parameter
+		var params []typing.Parameter
 		for _, param := range values {
 			if param, ok := param.(ast.VariableExpression); ok {
-				params = append(params, ast.Parameter{Name: param.Name})
+				params = append(params, typing.Parameter{Name: param.Name})
 			}
 		}
 
-		return ast.LambdaExpression{Data: ast.ParamData{Params: params}, Body: body}, nil
+		return ast.LambdaExpression{Data: typing.ParamData{Params: params}, Body: body}, nil
 	} else if len(values) == 1 {
 		// Grouping expression
 		err := p.consume(token.RightParen, "Expect ')' after expression")

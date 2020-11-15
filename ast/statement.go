@@ -1,6 +1,9 @@
 package ast
 
-import "github.com/leluxnet/carbon/token"
+import (
+	"github.com/leluxnet/carbon/token"
+	"github.com/leluxnet/carbon/typing"
+)
 
 type Statement interface {
 	astStatement()
@@ -40,7 +43,7 @@ type DoWhileStmt struct {
 
 type FunStmt struct {
 	Name string
-	Data ParamData
+	Data typing.ParamData
 	Body Statement
 }
 

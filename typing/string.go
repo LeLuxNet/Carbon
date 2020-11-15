@@ -7,7 +7,25 @@ import (
 	"strings"
 )
 
-var StringClass = NewNativeClass("string", Properties{})
+const (
+	toUpperCaseS = "toUpperCase"
+	toLowerCaseS = "toLowerCase"
+)
+
+var toUpperCase = BFunction{Name: toUpperCaseS, Cal: func(this Object, _ []Object) Throwable {
+	t, _ := this.(String)
+	return Return{String{strings.ToUpper(t.Value)}}
+}}
+
+var toLowerCase = BFunction{Name: toLowerCaseS, Cal: func(this Object, _ []Object) Throwable {
+	t, _ := this.(String)
+	return Return{String{strings.ToLower(t.Value)}}
+}}
+
+var StringClass = NewNativeClass("string", Properties{
+	toUpperCaseS: toUpperCase,
+	toLowerCaseS: toLowerCase,
+})
 
 var _ Object = String{}
 

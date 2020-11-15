@@ -7,21 +7,23 @@ import (
 )
 
 var _ typing.Object = Function{}
-var _ ast.Callable = Function{}
+var _ typing.Callable = Function{}
 
 type Function struct {
 	Name  string
-	PData ast.ParamData
+	PData typing.ParamData
 	Stmt  ast.Statement
 	Env   *env.Env
 }
 
-func (o Function) Data() ast.ParamData {
+func (o Function) Data() typing.ParamData {
 	return o.PData
 }
 
-func (o Function) Call(args []typing.Object) typing.Throwable {
+func (o Function) Call(this typing.Object, args []typing.Object) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
+
+	e.Define("this", this, nil, false, true)
 
 	for i, param := range o.PData.Params {
 		e.Define(param.Name, args[i], &param.Type, false, false)
