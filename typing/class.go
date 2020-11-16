@@ -24,6 +24,11 @@ func NewNativeClass(name string, properties Properties) Class {
 	return Class{Name: name, Properties: properties}
 }
 
+func (o Class) GetProp(name string) (Object, bool) {
+	val, ok := o.Properties[name]
+	return val, ok
+}
+
 func (o Class) Data() ParamData {
 	return ParamData{}
 }

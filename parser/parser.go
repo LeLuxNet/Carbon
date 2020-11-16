@@ -7,6 +7,7 @@ import (
 	"github.com/leluxnet/carbon/token"
 	"github.com/leluxnet/carbon/typing"
 	"math/big"
+	"strings"
 )
 
 type Parser struct {
@@ -59,6 +60,8 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 		res = ast.BreakStmt{}
 	} else if p.match(token.Continue) {
 		res = ast.ContinueStmt{}
+	} else if p.match(token.Import) {
+		res, err = p.importStmt()
 	} else if p.match(token.Export) {
 		return p.exportStmt()
 	} else if p.match(token.LeftBrace) {
@@ -321,6 +324,47 @@ func (p *Parser) returnStmt() (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.ReturnStmt{Expr: expr}, nil
+}
+
+func (p *Parser) importStmt() (ast.Statement, *errors.SyntaxError) {
+	if p.Position < len(p.Tokens) {
+		var name string
+		var module string
+		if p.Tokens[p.Position].Type == token.Identifier {
+			err := p.consume(token.Identifier, "Expect variable name after 'import'")
+			if err != nil {
+				return nil, err
+			}
+			name = p.previous().Literal
+
+			err = p.consume(token.From, "Expect 'from' after import name")
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consume(token.String, "Expect module name after 'from'")
+			if err != nil {
+				return nil, err
+			}
+			module = p.previous().Literal
+		} else if p.Tokens[p.Position].Type == token.String {
+			err := p.consume(token.String, "Expect module name after 'import'")
+			if err != nil {
+				return nil, err
+			}
+
+			module = p.previous().Literal
+
+			if strings.Contains(module, "/") {
+				return nil, errors.NewSyntaxError("To use paths in imports replace 'import \"dir/file\"' with 'import name from \"dir/file\"'", p.previous())
+			}
+
+			name = module
+		}
+
+		return ast.ImportStmt{Name: name, Module: module}, nil
+	}
+	return nil, errors.NewSyntaxError("Expect string or identifier after 'import", p.Tokens[p.Position])
 }
 
 func (p *Parser) exportStmt() (ast.Statement, *errors.SyntaxError) {

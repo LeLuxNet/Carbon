@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/leluxnet/carbon/env"
+	"github.com/leluxnet/carbon/eval"
 	"os"
 )
 
@@ -18,6 +19,6 @@ func Repl(e *env.Env) {
 		scanner.Scan()
 		text := scanner.Text()
 
-		run(text, e, true)
+		eval.Run(text, e, true)
 	}
 }

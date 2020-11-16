@@ -1,8 +1,8 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/math"
-	"hash/fnv"
 	"math/big"
 	"strings"
 )
@@ -76,13 +76,7 @@ func (o String) Mul(other Object, _ bool) (Object, Object) {
 }
 
 func (o String) Hash() uint64 {
-	return hashString(o.Value)
-}
-
-func hashString(s string) uint64 {
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(s))
-	return h.Sum64()
+	return hash.HashString(o.Value)
 }
 
 func (o String) GetIndex(key Object) (Object, Object) {

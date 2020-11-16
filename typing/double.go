@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/math"
 	"math/big"
 )
@@ -181,5 +182,5 @@ func (o Double) Pos() Object {
 
 func (o Double) Hash() uint64 {
 	// TODO: Better method
-	return hashString(o.Value.String())
+	return hash.HashString(o.Value.String())
 }

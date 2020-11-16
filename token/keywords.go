@@ -17,6 +17,8 @@ var Keywords = map[string]struct {
 	"return":   {Return, true},
 	"break":    {Break, true},
 	"continue": {Continue, true},
+	"import":   {Import, true},
+	"from":     {From, false},
 	"export":   {Export, true},
 
 	"null":  {Null, true},

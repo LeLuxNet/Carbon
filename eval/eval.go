@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
+	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/token"
 	"github.com/leluxnet/carbon/typing"
 )
@@ -53,6 +54,8 @@ func evalStmt(stmt ast.Statement, e *env.Env, props strObject) (typing.Object, t
 		return nil, typing.Break{}
 	case ast.ContinueStmt:
 		return nil, typing.Continue{}
+	case ast.ImportStmt:
+		return nil, evalImport(stmt, e)
 	case ast.ExportStmt:
 		return nil, evalExport(stmt, e, props)
 	case ast.BlockStmt:
@@ -260,6 +263,17 @@ func evalReturn(expr ast.ReturnStmt, e *env.Env) typing.Throwable {
 	return typing.Return{Data: val}
 }
 
+func evalImport(expr ast.ImportStmt, e *env.Env) typing.Throwable {
+	props := Import(expr.Module)
+
+	m := typing.NewMap()
+	for name, o := range props {
+		m.Items[hash.HashString(name)] = typing.Pair{Key: typing.String{Value: name}, Value: o}
+	}
+
+	return e.Define(expr.Name, m, nil, false, true)
+}
+
 func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwable {
 	switch body := expr.Body.(type) {
 	case ast.ClassStmt:
@@ -268,6 +282,7 @@ func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwab
 			return err
 		}
 		props[name] = class
+		return nil
 	case ast.FunStmt:
 		props[body.Name] = Function{
 			Name:  body.Name,
@@ -275,8 +290,18 @@ func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwab
 			Stmt:  body.Body,
 			Env:   e,
 		}
+		return nil
+	case ast.ExpressionStmt:
+		if expr, ok := body.Expr.(ast.VariableExpression); ok {
+			val, err := e.Get(expr.Name)
+			if err != nil {
+				return err
+			}
+			props[expr.Name] = val
+			return nil
+		}
 	}
-	return nil
+	return typing.NewError("Only functions, classes and variables can be exported")
 }
 
 func evalBlock(expr ast.BlockStmt, e *env.Env, props strObject) typing.Throwable {
@@ -380,7 +405,7 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwa
 			return nil, err
 		}
 
-		callee, err = getProperty(this, prop.Name)
+		callee, err = getProperty(this.Class(), prop.Name)
 	} else {
 		callee, err = evalExpression(expr.Target, e)
 	}
@@ -452,7 +477,7 @@ func evalProperty(expr ast.PropertyExpression, e *env.Env) (typing.Object, typin
 		return nil, err
 	}
 
-	return getProperty(target, expr.Name)
+	return getProperty(target.Class(), expr.Name)
 }
 
 func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable) {

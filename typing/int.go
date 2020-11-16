@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/math"
 	"math/big"
 )
@@ -225,5 +226,5 @@ func (o Int) Xor(other Object, first bool) (Object, Object) {
 
 func (o Int) Hash() uint64 {
 	// TODO: Better method
-	return hashString(o.Value.String())
+	return hash.HashString(o.Value.String())
 }

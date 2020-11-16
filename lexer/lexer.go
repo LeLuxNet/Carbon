@@ -267,6 +267,7 @@ func isDigit(c rune) bool {
 }
 
 func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
+	col := l.Column - 1
 	pos := l.Position
 
 	for !l.isEnd() && l.Chars[l.Position] != '"' && l.Chars[l.Position] != '\n' {
@@ -284,7 +285,7 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 	l.Column++
 
 	return &token.Token{Type: token.String, Literal: string(l.Chars[pos : l.Position-1]),
-		Line: l.Line, Column: l.Column}, nil
+		Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Position}, nil
 }
 
 func (l *Lexer) char() (*token.Token, *errors.SyntaxError) {
