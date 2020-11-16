@@ -4,7 +4,6 @@ type TokenType int
 
 const (
 	Nothing = iota
-	EOF
 
 	Identifier
 
@@ -81,12 +80,14 @@ const (
 
 	Var
 	Val
-	Fun
 	If
 	Else
-	Do
 	While
+	Do
 	For
+	Class
+	Fun
+
 	Return
 	Break
 	Continue

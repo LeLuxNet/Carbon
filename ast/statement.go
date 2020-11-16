@@ -47,6 +47,11 @@ type FunStmt struct {
 	Body Statement
 }
 
+type ClassStmt struct {
+	Name       string
+	Properties map[string]Statement
+}
+
 type ReturnStmt struct {
 	Expr Expression
 }
@@ -69,6 +74,7 @@ func (s AssignStmt) astStatement()     {}
 func (s IfStmt) astStatement()         {}
 func (s WhileStmt) astStatement()      {}
 func (s DoWhileStmt) astStatement()    {}
+func (s ClassStmt) astStatement()      {}
 func (s FunStmt) astStatement()        {}
 func (s ReturnStmt) astStatement()     {}
 func (s BreakStmt) astStatement()      {}

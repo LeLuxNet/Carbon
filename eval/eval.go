@@ -36,6 +36,8 @@ func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, typing.Throwable) 
 		return nil, evalWhile(stmt, e)
 	case ast.DoWhileStmt:
 		return nil, evalDoWhile(stmt, e)
+	case ast.ClassStmt:
+		return nil, evalClass(stmt, e)
 	case ast.FunStmt:
 		return nil, evalFun(stmt, e)
 	case ast.ReturnStmt:
@@ -198,6 +200,36 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Throwable {
 		}
 	}
 	return nil
+}
+
+func evalClass(expr ast.ClassStmt, e *env.Env) typing.Throwable {
+	props := make(typing.Properties, len(expr.Properties))
+	for name, val := range expr.Properties {
+		if val, ok := val.(ast.FunStmt); ok {
+			fun := Function{
+				Name:  val.Name,
+				PData: val.Data,
+				Stmt:  val.Body,
+				Env:   e,
+			}
+
+			props[name] = fun
+		} else {
+			v, err := EvalStmt(val, e)
+			if err != nil {
+				return err
+			}
+
+			props[name] = v
+		}
+	}
+
+	class := typing.Class{
+		Name:       expr.Name,
+		Properties: props,
+	}
+
+	return e.Define(expr.Name, class, nil, false, true)
 }
 
 func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {

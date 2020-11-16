@@ -49,8 +49,10 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 		return p.whileStmt()
 	} else if p.match(token.Do) {
 		res, err = p.doWhileStmt()
+	} else if p.match(token.Class) {
+		return p.classStmt()
 	} else if p.match(token.Fun) {
-		return p.funStmt()
+		return p.funStmt("function")
 	} else if p.match(token.Return) {
 		res, err = p.returnStmt()
 	} else if p.match(token.Break) {
@@ -232,14 +234,47 @@ func (p *Parser) doWhileStmt() (ast.Statement, *errors.SyntaxError) {
 	return ast.DoWhileStmt{Condition: condition, Body: body}, nil
 }
 
-func (p *Parser) funStmt() (ast.Statement, *errors.SyntaxError) {
-	err := p.consume(token.Identifier, "Expect function name")
+func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, "Expect class name")
 	if err != nil {
 		return nil, err
 	}
 	name := p.previous().Literal
 
-	err = p.consume(token.LeftParen, "Expect '(' after function name")
+	err = p.consume(token.LeftBrace, "Expect '{' after class name")
+	if err != nil {
+		return nil, err
+	}
+
+	props := make(map[string]ast.Statement)
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		if p.match(token.Fun) {
+			val, err := p.funStmt("method")
+			if err != nil {
+				return nil, err
+			}
+
+			v, _ := val.(ast.FunStmt)
+			props[v.Name] = v
+		}
+	}
+
+	err = p.consume(token.RightBrace, "Expect '}' after class body")
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ClassStmt{Name: name, Properties: props}, nil
+}
+
+func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, fmt.Sprintf("Expect %s name", t))
+	if err != nil {
+		return nil, err
+	}
+	name := p.previous().Literal
+
+	err = p.consume(token.LeftParen, fmt.Sprintf("Expect '(' after %s name", t))
 	if err != nil {
 		return nil, err
 	}

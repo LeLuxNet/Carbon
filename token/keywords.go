@@ -4,7 +4,6 @@ var Keywords = map[string]struct {
 	TokenType
 	Semi bool
 }{
-	"fun":   {Fun, false},
 	"var":   {Var, false},
 	"val":   {Val, false},
 	"if":    {If, false},
@@ -12,6 +11,8 @@ var Keywords = map[string]struct {
 	"while": {While, false},
 	"do":    {Do, false},
 	"for":   {For, false},
+	"fun":   {Fun, false},
+	"class": {Class, false},
 
 	"return":   {Return, true},
 	"break":    {Break, true},
