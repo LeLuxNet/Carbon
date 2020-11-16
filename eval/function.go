@@ -23,7 +23,9 @@ func (o Function) Data() typing.ParamData {
 func (o Function) Call(this typing.Object, args []typing.Object) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
 
-	e.Define("this", this, nil, false, true)
+	if this != nil {
+		e.Define("this", this, nil, false, true)
+	}
 
 	for i, param := range o.PData.Params {
 		e.Define(param.Name, args[i], &param.Type, false, false)
