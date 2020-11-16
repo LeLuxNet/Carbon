@@ -8,21 +8,24 @@ import (
 	"github.com/leluxnet/carbon/typing"
 )
 
-func Eval(stmts []ast.Statement, e *env.Env, printRes bool) typing.Throwable {
+type strObject map[string]typing.Object
+
+func Eval(stmts []ast.Statement, e *env.Env, printRes bool) (map[string]typing.Object, typing.Throwable) {
+	props := make(strObject)
 	for _, stmt := range stmts {
-		val, err := EvalStmt(stmt, e)
+		val, err := evalStmt(stmt, e, props)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if printRes && val != nil {
 			fmt.Println(val.ToString())
 		}
 	}
-	return nil
+	return props, nil
 }
 
-func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, typing.Throwable) {
+func evalStmt(stmt ast.Statement, e *env.Env, props strObject) (typing.Object, typing.Throwable) {
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
 		return nil, evalVar(stmt, e)
@@ -31,13 +34,17 @@ func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, typing.Throwable) 
 	case ast.AssignStmt:
 		return nil, evalAssignment(stmt, e)
 	case ast.IfStmt:
-		return nil, evalIf(stmt, e)
+		return nil, evalIf(stmt, e, props)
 	case ast.WhileStmt:
-		return nil, evalWhile(stmt, e)
+		return nil, evalWhile(stmt, e, props)
 	case ast.DoWhileStmt:
-		return nil, evalDoWhile(stmt, e)
+		return nil, evalDoWhile(stmt, e, props)
 	case ast.ClassStmt:
-		return nil, evalClass(stmt, e)
+		name, class, err := getClass(stmt, e, props)
+		if err != nil {
+			return nil, err
+		}
+		return nil, e.Define(name, class, nil, false, true)
 	case ast.FunStmt:
 		return nil, evalFun(stmt, e)
 	case ast.ReturnStmt:
@@ -46,8 +53,10 @@ func EvalStmt(stmt ast.Statement, e *env.Env) (typing.Object, typing.Throwable) 
 		return nil, typing.Break{}
 	case ast.ContinueStmt:
 		return nil, typing.Continue{}
+	case ast.ExportStmt:
+		return nil, evalExport(stmt, e, props)
 	case ast.BlockStmt:
-		return nil, evalBlock(stmt, e)
+		return nil, evalBlock(stmt, e, props)
 	case ast.ExpressionStmt:
 		return evalExpression(stmt.Expr, e)
 	}
@@ -142,23 +151,23 @@ func evalAssignment(expr ast.AssignStmt, e *env.Env) typing.Throwable {
 	return e.Set(expr.Name, val)
 }
 
-func evalIf(expr ast.IfStmt, e *env.Env) typing.Throwable {
+func evalIf(expr ast.IfStmt, e *env.Env, props strObject) typing.Throwable {
 	condition, err := evalExpression(expr.Condition, e)
 	if err != nil {
 		return err
 	}
 
 	if typing.Truthy(condition) {
-		_, err := EvalStmt(expr.Then, e)
+		_, err := evalStmt(expr.Then, e, props)
 		return err
 	} else if expr.Else != nil {
-		_, err := EvalStmt(expr.Else, e)
+		_, err := evalStmt(expr.Else, e, props)
 		return err
 	}
 	return nil
 }
 
-func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
+func evalWhile(expr ast.WhileStmt, e *env.Env, props strObject) typing.Throwable {
 	for {
 		condition, err := evalExpression(expr.Condition, e)
 		if err != nil {
@@ -167,7 +176,7 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
 			break
 		}
 
-		_, err = EvalStmt(expr.Body, e)
+		_, err = evalStmt(expr.Body, e, props)
 		if err != nil {
 			if _, ok := err.(typing.Break); ok {
 				return nil
@@ -180,9 +189,9 @@ func evalWhile(expr ast.WhileStmt, e *env.Env) typing.Throwable {
 	return nil
 }
 
-func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Throwable {
+func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, props strObject) typing.Throwable {
 	for {
-		_, err := EvalStmt(expr.Body, e)
+		_, err := evalStmt(expr.Body, e, props)
 		if err != nil {
 			if _, ok := err.(typing.Break); ok {
 				return nil
@@ -202,8 +211,8 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env) typing.Throwable {
 	return nil
 }
 
-func evalClass(expr ast.ClassStmt, e *env.Env) typing.Throwable {
-	props := make(typing.Properties, len(expr.Properties))
+func getClass(expr ast.ClassStmt, e *env.Env, props strObject) (string, typing.Object, typing.Throwable) {
+	p := make(typing.Properties, len(expr.Properties))
 	for name, val := range expr.Properties {
 		if val, ok := val.(ast.FunStmt); ok {
 			fun := Function{
@@ -213,23 +222,23 @@ func evalClass(expr ast.ClassStmt, e *env.Env) typing.Throwable {
 				Env:   e,
 			}
 
-			props[name] = fun
+			p[name] = fun
 		} else {
-			v, err := EvalStmt(val, e)
+			v, err := evalStmt(val, e, props)
 			if err != nil {
-				return err
+				return "", nil, err
 			}
 
-			props[name] = v
+			p[name] = v
 		}
 	}
 
 	class := typing.Class{
 		Name:       expr.Name,
-		Properties: props,
+		Properties: p,
 	}
 
-	return e.Define(expr.Name, class, nil, false, true)
+	return "", class, nil
 }
 
 func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {
@@ -251,10 +260,29 @@ func evalReturn(expr ast.ReturnStmt, e *env.Env) typing.Throwable {
 	return typing.Return{Data: val}
 }
 
-func evalBlock(expr ast.BlockStmt, e *env.Env) typing.Throwable {
+func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwable {
+	switch body := expr.Body.(type) {
+	case ast.ClassStmt:
+		name, class, err := getClass(body, e, props)
+		if err != nil {
+			return err
+		}
+		props[name] = class
+	case ast.FunStmt:
+		props[body.Name] = Function{
+			Name:  body.Name,
+			PData: body.Data,
+			Stmt:  body.Body,
+			Env:   e,
+		}
+	}
+	return nil
+}
+
+func evalBlock(expr ast.BlockStmt, e *env.Env, props strObject) typing.Throwable {
 	scope := env.NewEnclosedEnv(e)
 	for _, stmt := range expr.Body {
-		_, err := EvalStmt(stmt, scope)
+		_, err := evalStmt(stmt, scope, props)
 		if err != nil {
 			return err
 		}

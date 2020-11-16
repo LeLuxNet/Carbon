@@ -59,6 +59,8 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 		res = ast.BreakStmt{}
 	} else if p.match(token.Continue) {
 		res = ast.ContinueStmt{}
+	} else if p.match(token.Export) {
+		return p.exportStmt()
 	} else if p.match(token.LeftBrace) {
 		return p.blockStmt()
 	} else {
@@ -319,6 +321,15 @@ func (p *Parser) returnStmt() (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.ReturnStmt{Expr: expr}, nil
+}
+
+func (p *Parser) exportStmt() (ast.Statement, *errors.SyntaxError) {
+	stmt, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ExportStmt{Body: stmt}, nil
 }
 
 func (p *Parser) blockStmt() (ast.Statement, *errors.SyntaxError) {

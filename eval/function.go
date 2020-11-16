@@ -29,7 +29,7 @@ func (o Function) Call(this typing.Object, args []typing.Object) typing.Throwabl
 		e.Define(param.Name, args[i], &param.Type, false, false)
 	}
 
-	_, err := EvalStmt(o.Stmt, e)
+	_, err := evalStmt(o.Stmt, e, map[string]typing.Object{})
 	return err
 }
 
