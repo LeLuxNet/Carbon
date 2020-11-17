@@ -98,7 +98,30 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 		return err
 	}
 
-	return e.Define(expr.Name, val, nil, false, expr.Const)
+	for name, prop := range expr.Names {
+		if prop == nil {
+			err := e.Define(name, val, nil, false, expr.Const)
+			if err != nil {
+				return err
+			}
+		} else {
+			p, err := evalExpression(prop, e, file)
+			if err != nil {
+				return err
+			}
+
+			pVal, err := getIndex(val, p)
+			if err != nil {
+				return err
+			}
+
+			err = e.Define(name, pVal, nil, false, expr.Const)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func evalAssignment(expr ast.AssignStmt, e *env.Env, file *typing.File) typing.Throwable {
@@ -442,6 +465,18 @@ func evalIndex(expr ast.IndexExpression, e *env.Env, file *typing.File) (typing.
 	}
 
 	return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", target.Class().Name))
+}
+
+func getIndex(o typing.Object, i typing.Object) (typing.Object, typing.Throwable) {
+	if t, ok := o.(typing.IndexGettable); ok {
+		res, err := t.GetIndex(i)
+		if err != nil {
+			return nil, typing.Throw{Data: err}
+		}
+		return res, nil
+	}
+
+	return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", o.Class().Name))
 }
 
 func evalProperty(expr ast.PropertyExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {

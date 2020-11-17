@@ -10,7 +10,7 @@ type Statement interface {
 }
 
 type VarStmt struct {
-	Name  string
+	Names map[string]Expression
 	Expr  Expression
 	Const bool
 }

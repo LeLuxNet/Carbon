@@ -97,13 +97,74 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	return res, nil
 }
 
-func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
-	err := p.consume(token.Identifier, "Expect identifier after 'var'")
+func nameByConst(c bool) string {
+	if c {
+		return "val"
+	} else {
+		return "var"
+	}
+}
+
+func (p *Parser) deconstructMap() (map[string]ast.Expression, *errors.SyntaxError) {
+	res := make(map[string]ast.Expression)
+
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		err := p.consume(token.Identifier, "Expect identifier in map")
+		if err != nil {
+			return nil, err
+		}
+		assign := p.previous().Literal
+
+		if len(p.Tokens) > p.Position &&
+			p.Tokens[p.Position].Type == token.Comma ||
+			p.Tokens[p.Position].Type == token.RightBrace {
+
+			res[assign] = ast.LiteralExpression{Object: typing.String{Value: assign}}
+		} else {
+			err := p.consume(token.Colon, "Expect ':' after key in map deconstruction")
+			if err != nil {
+				return nil, err
+			}
+
+			expr, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+
+			res[assign] = expr
+		}
+
+		if !p.match(token.Comma) {
+			break
+		}
+	}
+
+	err := p.consume(token.RightBrace, "Expect '}' after map deconstruction")
 	if err != nil {
 		return nil, err
 	}
 
-	name := p.previous().Literal
+	return res, nil
+}
+
+func (p *Parser) deconstruction(c bool) (map[string]ast.Expression, *errors.SyntaxError) {
+	if len(p.Tokens) > p.Position {
+		tok := p.Tokens[p.Position]
+
+		if p.match(token.Identifier) {
+			return map[string]ast.Expression{tok.Literal: nil}, nil
+		} else if p.match(token.LeftBrace) {
+			return p.deconstructMap()
+		}
+	}
+	return nil, errors.NewSyntaxError(fmt.Sprintf("Expect identifier after '%s'", nameByConst(c)), p.previous())
+}
+
+func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
+	names, err := p.deconstruction(c)
+	if err != nil {
+		return nil, err
+	}
 
 	err = p.consume(token.Equal, "Expect '=' after variable name")
 	if err != nil {
@@ -115,7 +176,7 @@ func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	return ast.VarStmt{Name: name, Expr: expr, Const: c}, nil
+	return ast.VarStmt{Names: names, Expr: expr, Const: c}, nil
 }
 
 func (p *Parser) assignStmt(t token.TokenType) (ast.Statement, *errors.SyntaxError) {
