@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
-	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/token"
 	"github.com/leluxnet/carbon/typing"
 )
@@ -54,8 +53,6 @@ func evalStmt(stmt ast.Statement, e *env.Env, props strObject) (typing.Object, t
 		return nil, typing.Break{}
 	case ast.ContinueStmt:
 		return nil, typing.Continue{}
-	case ast.ImportStmt:
-		return nil, evalImport(stmt, e)
 	case ast.ExportStmt:
 		return nil, evalExport(stmt, e, props)
 	case ast.BlockStmt:
@@ -261,17 +258,6 @@ func evalReturn(expr ast.ReturnStmt, e *env.Env) typing.Throwable {
 		return err
 	}
 	return typing.Return{Data: val}
-}
-
-func evalImport(expr ast.ImportStmt, e *env.Env) typing.Throwable {
-	props := Import(expr.Module)
-
-	m := typing.NewMap()
-	for name, o := range props {
-		m.Items[hash.HashString(name)] = typing.Pair{Key: typing.String{Value: name}, Value: o}
-	}
-
-	return e.Define(expr.Name, m, nil, false, true)
 }
 
 func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwable {

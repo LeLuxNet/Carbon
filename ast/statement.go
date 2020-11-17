@@ -60,11 +60,6 @@ type BreakStmt struct{}
 
 type ContinueStmt struct{}
 
-type ImportStmt struct {
-	Name   string
-	Module string
-}
-
 type ExportStmt struct {
 	Body Statement
 }
@@ -88,7 +83,6 @@ func (s FunStmt) astStatement()        {}
 func (s ReturnStmt) astStatement()     {}
 func (s BreakStmt) astStatement()      {}
 func (s ContinueStmt) astStatement()   {}
-func (s ImportStmt) astStatement()     {}
 func (s ExportStmt) astStatement()     {}
 func (s BlockStmt) astStatement()      {}
 func (s ExpressionStmt) astStatement() {}

@@ -16,6 +16,8 @@ func BuiltinEnv() *env.Env {
 	e := env.NewEnv()
 	builtin.Register(e)
 
+	e.Define(ImportFun.Name, ImportFun, nil, false, false)
+
 	return e
 }
 

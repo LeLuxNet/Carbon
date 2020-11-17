@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	eval.InitImportFun()
 	e := eval.BuiltinEnv()
 
 	if len(os.Args) > 1 {

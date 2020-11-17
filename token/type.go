@@ -91,7 +91,5 @@ const (
 	Return
 	Break
 	Continue
-	Import
-	From
 	Export
 )
