@@ -40,9 +40,9 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	var err *errors.SyntaxError
 
 	if p.match(token.Var) {
-		res, err = p.varStmt()
+		res, err = p.varStmt(false)
 	} else if p.match(token.Val) {
-		res, err = p.valStmt()
+		res, err = p.varStmt(true)
 	} else if p.match(token.If) {
 		return p.ifStmt()
 	} else if p.match(token.While) {
@@ -97,7 +97,7 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	return res, nil
 }
 
-func (p *Parser) varStmt() (ast.Statement, *errors.SyntaxError) {
+func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
 	err := p.consume(token.Identifier, "Expect identifier after 'var'")
 	if err != nil {
 		return nil, err
@@ -115,28 +115,7 @@ func (p *Parser) varStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	return ast.VarStmt{Name: name, Expr: expr}, nil
-}
-
-func (p *Parser) valStmt() (ast.Statement, *errors.SyntaxError) {
-	err := p.consume(token.Identifier, "Expect identifier after 'val'")
-	if err != nil {
-		return nil, err
-	}
-
-	name := p.previous().Literal
-
-	err = p.consume(token.Equal, "Expect '=' after variable name")
-	if err != nil {
-		return nil, err
-	}
-
-	expr, err := p.expression()
-	if err != nil {
-		return nil, err
-	}
-
-	return ast.ValStmt{Name: name, Expr: expr}, nil
+	return ast.VarStmt{Name: name, Expr: expr, Const: c}, nil
 }
 
 func (p *Parser) assignStmt(t token.TokenType) (ast.Statement, *errors.SyntaxError) {

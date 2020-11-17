@@ -27,8 +27,6 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
 		return nil, evalVar(stmt, e, file)
-	case ast.ValStmt:
-		return nil, evalVal(stmt, e, file)
 	case ast.AssignStmt:
 		return nil, evalAssignment(stmt, e, file)
 	case ast.IfStmt:
@@ -100,16 +98,7 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 		return err
 	}
 
-	return e.Define(expr.Name, val, nil, false, false)
-}
-
-func evalVal(expr ast.ValStmt, e *env.Env, file *typing.File) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e, file)
-	if err != nil {
-		return err
-	}
-
-	return e.Define(expr.Name, val, nil, false, true)
+	return e.Define(expr.Name, val, nil, false, expr.Const)
 }
 
 func evalAssignment(expr ast.AssignStmt, e *env.Env, file *typing.File) typing.Throwable {

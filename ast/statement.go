@@ -10,13 +10,9 @@ type Statement interface {
 }
 
 type VarStmt struct {
-	Name string
-	Expr Expression
-}
-
-type ValStmt struct {
-	Name string
-	Expr Expression
+	Name  string
+	Expr  Expression
+	Const bool
 }
 
 type AssignStmt struct {
@@ -73,7 +69,6 @@ type ExpressionStmt struct {
 }
 
 func (s VarStmt) astStatement()        {}
-func (s ValStmt) astStatement()        {}
 func (s AssignStmt) astStatement()     {}
 func (s IfStmt) astStatement()         {}
 func (s WhileStmt) astStatement()      {}
