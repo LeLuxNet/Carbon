@@ -16,32 +16,47 @@ func InitImportFun() {
 		Dat: typing.ParamData{
 			Params: []typing.Parameter{
 				{
-					"module",
+					"name",
 					typing.StringClass,
 					typing.String{},
 				},
 			},
 		},
 		Cal: func(_ typing.Object, args []typing.Object) typing.Throwable {
-			props := Import(args[0].ToString())
-
-			m := typing.NewMap()
-			for name, o := range props {
-				m.Items[hash.HashString(name)] = typing.Pair{Key: typing.String{Value: name}, Value: o}
-			}
-
-			return typing.Return{Data: m}
+			return ImportMap(args[0].ToString())
 		},
 	}
 }
 
-func Import(name string) map[string]typing.Object {
-	e := BuiltinEnv()
+var importCache = make(map[string]typing.Map)
+
+func ImportMap(name string) typing.Throwable {
+	var fName string
+
 	if strings.HasPrefix(name, "./") || strings.HasPrefix(name, "../") {
-		_, props := RunFile(name+FileExtension, e)
-		return props
+		fName = name + FileExtension
 	} else {
 		// TODO: Import module
-		return map[string]typing.Object{}
+		return nil
 	}
+
+	rName, err := resolveName(fName)
+	if err != nil {
+		return typing.NewError(err.Error())
+	}
+
+	if cache, ok := importCache[rName]; ok {
+		return typing.Return{Data: cache}
+	}
+
+	e := BuiltinEnv()
+	_, props := RunFile(rName, e)
+
+	m := typing.NewMap()
+	for name, o := range props {
+		m.Items[hash.HashString(name)] = typing.Pair{Key: typing.String{Value: name}, Value: o}
+	}
+
+	importCache[rName] = m
+	return typing.Return{Data: m}
 }

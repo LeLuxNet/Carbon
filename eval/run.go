@@ -9,6 +9,7 @@ import (
 	"github.com/leluxnet/carbon/typing"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,6 +30,15 @@ func RunFile(name string, e *env.Env) (int, map[string]typing.Object) {
 	}
 
 	return Run(string(dat), e, false)
+}
+
+func resolveName(relative string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(wd, relative), nil
 }
 
 func Run(source string, e *env.Env, printRes bool) (int, map[string]typing.Object) {
