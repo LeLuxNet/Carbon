@@ -3,10 +3,10 @@ package typing
 var _ Object = Class{}
 var _ Callable = Class{}
 
-var toString = BFunction{Name: "toString", Cal: func(this Object, _ []Object) Throwable {
+var toString = BFunction{Name: "toString", Cal: func(this Object, _ []Object, _ *File) Throwable {
 	return Return{String{this.ToString()}}
 }}
-var class = BFunction{Name: "Class", Cal: func(this Object, _ []Object) Throwable {
+var class = BFunction{Name: "Class", Cal: func(this Object, _ []Object, _ *File) Throwable {
 	return Return{this.Class()}
 }}
 
@@ -33,7 +33,7 @@ func (o Class) Data() ParamData {
 	return ParamData{}
 }
 
-func (o Class) Call(_ Object, args []Object) Throwable {
+func (o Class) Call(_ Object, args []Object, _ *File) Throwable {
 	return Return{Instance{class: o}}
 }
 

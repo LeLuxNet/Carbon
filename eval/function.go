@@ -20,7 +20,7 @@ func (o Function) Data() typing.ParamData {
 	return o.PData
 }
 
-func (o Function) Call(this typing.Object, args []typing.Object) typing.Throwable {
+func (o Function) Call(this typing.Object, args []typing.Object, file *typing.File) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
 
 	if this != nil {
@@ -31,7 +31,7 @@ func (o Function) Call(this typing.Object, args []typing.Object) typing.Throwabl
 		e.Define(param.Name, args[i], &param.Type, false, false)
 	}
 
-	_, err := evalStmt(o.Stmt, e, map[string]typing.Object{})
+	_, err := evalStmt(o.Stmt, e, file)
 	return err
 }
 

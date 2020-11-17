@@ -15,7 +15,7 @@ var Input = typing.BFunction{
 			Type:    typing.StringClass,
 			Default: typing.String{}}},
 	},
-	Cal: func(_ typing.Object, args []typing.Object) typing.Throwable {
+	Cal: func(_ typing.Object, args []typing.Object, _ *typing.File) typing.Throwable {
 		scanner := bufio.NewScanner(os.Stdin)
 
 		if len(args) > 0 {

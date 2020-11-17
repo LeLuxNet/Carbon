@@ -8,12 +8,10 @@ import (
 	"github.com/leluxnet/carbon/typing"
 )
 
-type strObject map[string]typing.Object
-
-func Eval(stmts []ast.Statement, e *env.Env, printRes bool) (map[string]typing.Object, typing.Throwable) {
-	props := make(strObject)
+func Eval(stmts []ast.Statement, e *env.Env, printRes bool, fileName string, path string) (*typing.File, typing.Throwable) {
+	file := typing.NewFile(fileName, path)
 	for _, stmt := range stmts {
-		val, err := evalStmt(stmt, e, props)
+		val, err := evalStmt(stmt, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -22,25 +20,25 @@ func Eval(stmts []ast.Statement, e *env.Env, printRes bool) (map[string]typing.O
 			fmt.Println(val.ToString())
 		}
 	}
-	return props, nil
+	return file, nil
 }
 
-func evalStmt(stmt ast.Statement, e *env.Env, props strObject) (typing.Object, typing.Throwable) {
+func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	switch stmt := stmt.(type) {
 	case ast.VarStmt:
-		return nil, evalVar(stmt, e)
+		return nil, evalVar(stmt, e, file)
 	case ast.ValStmt:
-		return nil, evalVal(stmt, e)
+		return nil, evalVal(stmt, e, file)
 	case ast.AssignStmt:
-		return nil, evalAssignment(stmt, e)
+		return nil, evalAssignment(stmt, e, file)
 	case ast.IfStmt:
-		return nil, evalIf(stmt, e, props)
+		return nil, evalIf(stmt, e, file)
 	case ast.WhileStmt:
-		return nil, evalWhile(stmt, e, props)
+		return nil, evalWhile(stmt, e, file)
 	case ast.DoWhileStmt:
-		return nil, evalDoWhile(stmt, e, props)
+		return nil, evalDoWhile(stmt, e, file)
 	case ast.ClassStmt:
-		name, class, err := getClass(stmt, e, props)
+		name, class, err := getClass(stmt, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -48,56 +46,56 @@ func evalStmt(stmt ast.Statement, e *env.Env, props strObject) (typing.Object, t
 	case ast.FunStmt:
 		return nil, evalFun(stmt, e)
 	case ast.ReturnStmt:
-		return nil, evalReturn(stmt, e)
+		return nil, evalReturn(stmt, e, file)
 	case ast.BreakStmt:
 		return nil, typing.Break{}
 	case ast.ContinueStmt:
 		return nil, typing.Continue{}
 	case ast.ExportStmt:
-		return nil, evalExport(stmt, e, props)
+		return nil, evalExport(stmt, e, file)
 	case ast.BlockStmt:
-		return nil, evalBlock(stmt, e, props)
+		return nil, evalBlock(stmt, e, file)
 	case ast.ExpressionStmt:
-		return evalExpression(stmt.Expr, e)
+		return evalExpression(stmt.Expr, e, file)
 	}
 	return nil, nil
 }
 
-func evalExpression(expr ast.Expression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalExpression(expr ast.Expression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	switch expr := expr.(type) {
 	case ast.LiteralExpression:
 		return expr.Object, nil
 	case ast.GroupingExpression:
-		return evalExpression(expr.Expr, e)
+		return evalExpression(expr.Expr, e, file)
 	case ast.ArrayExpression:
-		return evalArray(expr, e)
+		return evalArray(expr, e, file)
 	case ast.MapExpression:
-		return evalMap(expr, e)
+		return evalMap(expr, e, file)
 	case ast.SetExpression:
-		return evalSet(expr, e)
+		return evalSet(expr, e, file)
 	case ast.TupleExpression:
-		return evalTuple(expr, e)
+		return evalTuple(expr, e, file)
 	case ast.LambdaExpression:
 		return evalLambda(expr, e)
 	case ast.VariableExpression:
 		return evalVariable(expr, e)
 	case ast.CallExpression:
-		return evalCall(expr, e)
+		return evalCall(expr, e, file)
 	case ast.IndexExpression:
-		return evalIndex(expr, e)
+		return evalIndex(expr, e, file)
 	case ast.PropertyExpression:
-		return evalProperty(expr, e)
+		return evalProperty(expr, e, file)
 	case ast.UnaryExpression:
-		return evalUnary(expr, e)
+		return evalUnary(expr, e, file)
 	case ast.BinaryExpression:
-		return evalBinary(expr, e)
+		return evalBinary(expr, e, file)
 	}
 
 	return typing.Null{}, nil
 }
 
-func evalVar(expr ast.VarStmt, e *env.Env) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e)
+func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
+	val, err := evalExpression(expr.Expr, e, file)
 	if err != nil {
 		return err
 	}
@@ -105,8 +103,8 @@ func evalVar(expr ast.VarStmt, e *env.Env) typing.Throwable {
 	return e.Define(expr.Name, val, nil, false, false)
 }
 
-func evalVal(expr ast.ValStmt, e *env.Env) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e)
+func evalVal(expr ast.ValStmt, e *env.Env, file *typing.File) typing.Throwable {
+	val, err := evalExpression(expr.Expr, e, file)
 	if err != nil {
 		return err
 	}
@@ -114,8 +112,8 @@ func evalVal(expr ast.ValStmt, e *env.Env) typing.Throwable {
 	return e.Define(expr.Name, val, nil, false, true)
 }
 
-func evalAssignment(expr ast.AssignStmt, e *env.Env) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e)
+func evalAssignment(expr ast.AssignStmt, e *env.Env, file *typing.File) typing.Throwable {
+	val, err := evalExpression(expr.Expr, e, file)
 	if err != nil {
 		return err
 	}
@@ -151,32 +149,32 @@ func evalAssignment(expr ast.AssignStmt, e *env.Env) typing.Throwable {
 	return e.Set(expr.Name, val)
 }
 
-func evalIf(expr ast.IfStmt, e *env.Env, props strObject) typing.Throwable {
-	condition, err := evalExpression(expr.Condition, e)
+func evalIf(expr ast.IfStmt, e *env.Env, file *typing.File) typing.Throwable {
+	condition, err := evalExpression(expr.Condition, e, file)
 	if err != nil {
 		return err
 	}
 
 	if typing.Truthy(condition) {
-		_, err := evalStmt(expr.Then, e, props)
+		_, err := evalStmt(expr.Then, e, file)
 		return err
 	} else if expr.Else != nil {
-		_, err := evalStmt(expr.Else, e, props)
+		_, err := evalStmt(expr.Else, e, file)
 		return err
 	}
 	return nil
 }
 
-func evalWhile(expr ast.WhileStmt, e *env.Env, props strObject) typing.Throwable {
+func evalWhile(expr ast.WhileStmt, e *env.Env, file *typing.File) typing.Throwable {
 	for {
-		condition, err := evalExpression(expr.Condition, e)
+		condition, err := evalExpression(expr.Condition, e, file)
 		if err != nil {
 			return err
 		} else if !typing.Truthy(condition) {
 			break
 		}
 
-		_, err = evalStmt(expr.Body, e, props)
+		_, err = evalStmt(expr.Body, e, file)
 		if err != nil {
 			if _, ok := err.(typing.Break); ok {
 				return nil
@@ -189,9 +187,9 @@ func evalWhile(expr ast.WhileStmt, e *env.Env, props strObject) typing.Throwable
 	return nil
 }
 
-func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, props strObject) typing.Throwable {
+func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, file *typing.File) typing.Throwable {
 	for {
-		_, err := evalStmt(expr.Body, e, props)
+		_, err := evalStmt(expr.Body, e, file)
 		if err != nil {
 			if _, ok := err.(typing.Break); ok {
 				return nil
@@ -201,7 +199,7 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, props strObject) typing.Throw
 			return err
 		}
 
-		condition, err := evalExpression(expr.Condition, e)
+		condition, err := evalExpression(expr.Condition, e, file)
 		if err != nil {
 			return err
 		} else if !typing.Truthy(condition) {
@@ -211,7 +209,7 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, props strObject) typing.Throw
 	return nil
 }
 
-func getClass(expr ast.ClassStmt, e *env.Env, props strObject) (string, typing.Object, typing.Throwable) {
+func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
 	p := make(typing.Properties, len(expr.Properties))
 	for name, val := range expr.Properties {
 		if val, ok := val.(ast.FunStmt); ok {
@@ -224,7 +222,7 @@ func getClass(expr ast.ClassStmt, e *env.Env, props strObject) (string, typing.O
 
 			p[name] = fun
 		} else {
-			v, err := evalStmt(val, e, props)
+			v, err := evalStmt(val, e, file)
 			if err != nil {
 				return "", nil, err
 			}
@@ -252,25 +250,25 @@ func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {
 	return e.Define(expr.Name, fun, nil, false, true)
 }
 
-func evalReturn(expr ast.ReturnStmt, e *env.Env) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e)
+func evalReturn(expr ast.ReturnStmt, e *env.Env, file *typing.File) typing.Throwable {
+	val, err := evalExpression(expr.Expr, e, file)
 	if err != nil {
 		return err
 	}
 	return typing.Return{Data: val}
 }
 
-func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwable {
+func evalExport(expr ast.ExportStmt, e *env.Env, file *typing.File) typing.Throwable {
 	switch body := expr.Body.(type) {
 	case ast.ClassStmt:
-		name, class, err := getClass(body, e, props)
+		name, class, err := getClass(body, e, file)
 		if err != nil {
 			return err
 		}
-		props[name] = class
+		file.Props[name] = class
 		return nil
 	case ast.FunStmt:
-		props[body.Name] = Function{
+		file.Props[body.Name] = Function{
 			Name:  body.Name,
 			PData: body.Data,
 			Stmt:  body.Body,
@@ -283,17 +281,17 @@ func evalExport(expr ast.ExportStmt, e *env.Env, props strObject) typing.Throwab
 			if err != nil {
 				return err
 			}
-			props[expr.Name] = val
+			file.Props[expr.Name] = val
 			return nil
 		}
 	}
 	return typing.NewError("Only functions, classes and variables can be exported")
 }
 
-func evalBlock(expr ast.BlockStmt, e *env.Env, props strObject) typing.Throwable {
+func evalBlock(expr ast.BlockStmt, e *env.Env, file *typing.File) typing.Throwable {
 	scope := env.NewEnclosedEnv(e)
 	for _, stmt := range expr.Body {
-		_, err := evalStmt(stmt, scope, props)
+		_, err := evalStmt(stmt, scope, file)
 		if err != nil {
 			return err
 		}
@@ -301,11 +299,11 @@ func evalBlock(expr ast.BlockStmt, e *env.Env, props strObject) typing.Throwable
 	return nil
 }
 
-func evalArray(expr ast.ArrayExpression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalArray(expr ast.ArrayExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	values := make([]typing.Object, len(expr.Values))
 
 	for i, rVal := range expr.Values {
-		val, err := evalExpression(rVal, e)
+		val, err := evalExpression(rVal, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -316,16 +314,16 @@ func evalArray(expr ast.ArrayExpression, e *env.Env) (typing.Object, typing.Thro
 	return typing.Array{Values: values}, nil
 }
 
-func evalMap(expr ast.MapExpression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalMap(expr ast.MapExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	res := typing.NewMap()
 
 	for rKey, rValue := range expr.Items {
-		key, err := evalExpression(rKey, e)
+		key, err := evalExpression(rKey, e, file)
 		if err != nil {
 			return nil, err
 		}
 
-		value, err := evalExpression(rValue, e)
+		value, err := evalExpression(rValue, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -336,11 +334,11 @@ func evalMap(expr ast.MapExpression, e *env.Env) (typing.Object, typing.Throwabl
 	return res, nil
 }
 
-func evalSet(expr ast.SetExpression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalSet(expr ast.SetExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	res := typing.NewSet()
 
 	for _, rVal := range expr.Values {
-		val, err := evalExpression(rVal, e)
+		val, err := evalExpression(rVal, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -351,11 +349,11 @@ func evalSet(expr ast.SetExpression, e *env.Env) (typing.Object, typing.Throwabl
 	return res, nil
 }
 
-func evalTuple(expr ast.TupleExpression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalTuple(expr ast.TupleExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	var values []typing.Object
 
 	for _, rVal := range expr.Values {
-		val, err := evalExpression(rVal, e)
+		val, err := evalExpression(rVal, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -380,20 +378,20 @@ func evalLambda(expr ast.LambdaExpression, e *env.Env) (typing.Object, typing.Th
 	return fun, nil
 }
 
-func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwable) {
+func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
 	var this typing.Object
 	var callee typing.Object
 	var err typing.Throwable
 
 	if prop, ok := expr.Target.(ast.PropertyExpression); ok {
-		this, err = evalExpression(prop.Target, e)
+		this, err = evalExpression(prop.Target, e, file)
 		if err != nil {
 			return nil, err
 		}
 
 		callee, err = getProperty(this.Class(), prop.Name)
 	} else {
-		callee, err = evalExpression(expr.Target, e)
+		callee, err = evalExpression(expr.Target, e, file)
 	}
 	if err != nil {
 		return nil, err
@@ -406,7 +404,7 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwa
 
 	var args []typing.Object
 	for _, arg := range expr.Arguments {
-		object, err := evalExpression(arg, e)
+		object, err := evalExpression(arg, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -428,21 +426,21 @@ func evalCall(expr ast.CallExpression, e *env.Env) (typing.Object, typing.Throwa
 		return nil, typing.NewError("Less args needed")
 	}
 
-	err = fun.Call(this, args)
+	err = fun.Call(this, args, file)
 	if ret, ok := err.(typing.Return); ok {
 		return ret.Data, nil
 	}
 	return nil, err
 }
 
-func evalIndex(expr ast.IndexExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	target, err := evalExpression(expr.Target, e)
+func evalIndex(expr ast.IndexExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
+	target, err := evalExpression(expr.Target, e, file)
 	if err != nil {
 		return nil, err
 	}
 
 	if t, ok := target.(typing.IndexGettable); ok {
-		index, err := evalExpression(expr.Index, e)
+		index, err := evalExpression(expr.Index, e, file)
 		if err != nil {
 			return nil, err
 		}
@@ -457,8 +455,8 @@ func evalIndex(expr ast.IndexExpression, e *env.Env) (typing.Object, typing.Thro
 	return nil, typing.NewError(fmt.Sprintf("'%s' has not support for getting indexes", target.Class().Name))
 }
 
-func evalProperty(expr ast.PropertyExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	target, err := evalExpression(expr.Target, e)
+func evalProperty(expr ast.PropertyExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
+	target, err := evalExpression(expr.Target, e, file)
 	if err != nil {
 		return nil, err
 	}
@@ -475,8 +473,8 @@ func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable)
 	return p, nil
 }
 
-func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	right, err := evalExpression(expr.Right, e)
+func evalUnary(expr ast.UnaryExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
+	right, err := evalExpression(expr.Right, e, file)
 	if err != nil {
 		return nil, err
 	}
@@ -496,13 +494,13 @@ func evalUnary(expr ast.UnaryExpression, e *env.Env) (typing.Object, typing.Thro
 	return nil, typing.NewError("Not implemented")
 }
 
-func evalBinary(expr ast.BinaryExpression, e *env.Env) (typing.Object, typing.Throwable) {
-	left, err := evalExpression(expr.Left, e)
+func evalBinary(expr ast.BinaryExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
+	left, err := evalExpression(expr.Left, e, file)
 	if err != nil {
 		return nil, err
 	}
 
-	right, err := evalExpression(expr.Right, e)
+	right, err := evalExpression(expr.Right, e, file)
 	if err != nil {
 		return nil, err
 	}

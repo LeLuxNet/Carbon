@@ -12,12 +12,12 @@ const (
 	toLowerCaseS = "toLowerCase"
 )
 
-var toUpperCase = BFunction{Name: toUpperCaseS, Cal: func(this Object, _ []Object) Throwable {
+var toUpperCase = BFunction{Name: toUpperCaseS, Cal: func(this Object, _ []Object, _ *File) Throwable {
 	t, _ := this.(String)
 	return Return{String{strings.ToUpper(t.Value)}}
 }}
 
-var toLowerCase = BFunction{Name: toLowerCaseS, Cal: func(this Object, _ []Object) Throwable {
+var toLowerCase = BFunction{Name: toLowerCaseS, Cal: func(this Object, _ []Object, _ *File) Throwable {
 	t, _ := this.(String)
 	return Return{String{strings.ToLower(t.Value)}}
 }}

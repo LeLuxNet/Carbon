@@ -22,26 +22,17 @@ func BuiltinEnv() *env.Env {
 	return e
 }
 
-func RunFile(name string, e *env.Env) (int, map[string]typing.Object) {
+func RunFile(name string, e *env.Env) (int, *typing.File) {
 	dat, err := ioutil.ReadFile(name)
 	if err != nil {
 		fmt.Println(err)
 		return 1, nil
 	}
 
-	return Run(string(dat), e, false)
+	return Run(string(dat), e, false, name, filepath.Dir(name))
 }
 
-func resolveName(relative string) (string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(wd, relative), nil
-}
-
-func Run(source string, e *env.Env, printRes bool) (int, map[string]typing.Object) {
+func Run(source string, e *env.Env, printRes bool, fileName string, path string) (int, *typing.File) {
 	source = strings.ReplaceAll(source, "\r", "")
 
 	lex := lexer.Lexer{Source: source}
@@ -64,11 +55,11 @@ func Run(source string, e *env.Env, printRes bool) (int, map[string]typing.Objec
 	}
 	// fmt.Println(stmts)
 
-	props, err := Eval(stmts, e, printRes)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.TData().ToString())
+	file, err2 := Eval(stmts, e, printRes, fileName, path)
+	if err2 != nil {
+		fmt.Fprintln(os.Stderr, err2.TData().ToString())
 		return 1, nil
 	}
 
-	return 0, props
+	return 0, file
 }

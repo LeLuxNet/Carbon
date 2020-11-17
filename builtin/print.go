@@ -11,7 +11,7 @@ var Print = typing.BFunction{
 	Dat: typing.ParamData{
 		Args: "args",
 	},
-	Cal: func(_ typing.Object, args []typing.Object) typing.Throwable {
+	Cal: func(_ typing.Object, args []typing.Object, _ *typing.File) typing.Throwable {
 		if len(args) == 0 {
 			return nil
 		}
