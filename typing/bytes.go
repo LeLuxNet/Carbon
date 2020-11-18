@@ -39,7 +39,7 @@ func (o Bytes) ToString() string {
 	var vals []string
 	for _, val := range o.Values {
 		b1, b2 := byteToHex(val)
-		vals = append(vals, string(b1) + string(b2))
+		vals = append(vals, string(b1)+string(b2))
 	}
 
 	return strings.Join(vals, " ")
@@ -117,7 +117,7 @@ func (o Bytes) NEq(other Object) (Object, Throwable) {
 
 func limitInt(o Object) (byte, Object) {
 	if o, ok := o.(Int); ok {
-		if o.Value.Sign() <= 0 && o.Value.Cmp(big.NewInt(256)) >= 0 {
+		if o.Value.Sign() <= 0 && o.Value.Cmp(big.NewInt(255)) >= 0 {
 			return byte(o.Value.Int64()), nil
 		} else {
 			return 0, Error{"Byte out of range %d has to be between 0 and 256"}

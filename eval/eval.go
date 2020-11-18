@@ -42,7 +42,8 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 		}
 		return nil, e.Define(name, class, nil, false, true)
 	case ast.FunStmt:
-		return nil, evalFun(stmt, e)
+		_, err := evalFun(stmt, e)
+		return nil, err
 	case ast.ReturnStmt:
 		return nil, evalReturn(stmt, e, file)
 	case ast.BreakStmt:
@@ -251,7 +252,7 @@ func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing
 	return "", class, nil
 }
 
-func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {
+func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {
 	fun := Function{
 		Name:  expr.Name,
 		PData: expr.Data,
@@ -259,7 +260,7 @@ func evalFun(expr ast.FunStmt, e *env.Env) typing.Throwable {
 		Env:   e,
 	}
 
-	return e.Define(expr.Name, fun, nil, false, true)
+	return fun, e.Define(expr.Name, fun, nil, false, true)
 }
 
 func evalReturn(expr ast.ReturnStmt, e *env.Env, file *typing.File) typing.Throwable {
@@ -280,12 +281,11 @@ func evalExport(expr ast.ExportStmt, e *env.Env, file *typing.File) typing.Throw
 		file.Props[name] = class
 		return nil
 	case ast.FunStmt:
-		file.Props[body.Name] = Function{
-			Name:  body.Name,
-			PData: body.Data,
-			Stmt:  body.Body,
-			Env:   e,
+		fun, err := evalFun(body, e)
+		if err != nil {
+			return err
 		}
+		file.Props[body.Name] = fun
 		return nil
 	case ast.ExpressionStmt:
 		if expr, ok := body.Expr.(ast.VariableExpression); ok {

@@ -6,6 +6,19 @@ import (
 	"math/big"
 )
 
+var DoubleClass = NewNativeClass("double", Properties{
+	"floor": BFunction{
+		Name: "floor",
+		Dat:  ParamData{},
+		Cal: func(this Object, _ []Object, _ *File) Throwable {
+			t, _ := this.(Double)
+
+			i, _ := t.Value.Int(new(big.Int))
+			return Return{Data: Int{Value: i}}
+		},
+	},
+})
+
 var _ Object = Double{}
 
 type Double struct {
@@ -26,7 +39,7 @@ func (o Double) ToString() string {
 }
 
 func (o Double) Class() Class {
-	return NewNativeClass("double", Properties{})
+	return DoubleClass
 }
 
 func (o Double) Eq(other Object) (Object, Throwable) {
