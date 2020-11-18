@@ -38,3 +38,15 @@ func (o IndexOutOfBoundsError) ToString() string {
 func (o IndexOutOfBoundsError) Class() Class {
 	return NewNativeClass("IndexOutOfBoundsError", Properties{})
 }
+
+type AttributeError struct {
+	Name string
+}
+
+func (o AttributeError) ToString() string {
+	return fmt.Sprintf("Has no such attribute '%s'", o.Name)
+}
+
+func (o AttributeError) Class() Class {
+	return NewNativeClass("AttributeError", Properties{})
+}

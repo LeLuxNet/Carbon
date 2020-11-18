@@ -1,8 +1,8 @@
 package eval
 
 import (
+	"crypto/rand"
 	"fmt"
-	"github.com/leluxnet/carbon/hash"
 	"github.com/leluxnet/carbon/typing"
 	"os"
 	"path/filepath"
@@ -26,12 +26,39 @@ func InitImportFun() {
 			},
 		},
 		Cal: func(_ typing.Object, args []typing.Object, file *typing.File) typing.Throwable {
-			return ImportMap(args[0].ToString(), file)
+			return ImportModule(args[0].ToString(), file)
 		},
 	}
 }
 
-var importCache = make(map[string]typing.Map)
+var Sys = typing.Module{Name: "sys", Items: map[string]typing.Object{
+	"_urandom": typing.BFunction{
+		Name: "_urandom",
+		Dat: typing.ParamData{
+			Params: []typing.Parameter{
+				{
+					Name: "len",
+					Type: typing.Int{}.Class(),
+				},
+			},
+		},
+		Cal: func(_ typing.Object, args []typing.Object, _ *typing.File) typing.Throwable {
+			i := args[0].(typing.Int).Value.Int64()
+
+			b := make([]byte, i)
+			_, err := rand.Read(b)
+			if err != nil {
+				return typing.NewError(err.Error())
+			}
+
+			return typing.Return{Data: typing.Bytes{Values: b}}
+		},
+	},
+}}
+
+var importCache = map[string]typing.Module{
+	"sys": Sys,
+}
 
 func AbsPath(relative string) (string, error) {
 	wd, err := os.Getwd()
@@ -42,12 +69,19 @@ func AbsPath(relative string) (string, error) {
 	return filepath.Join(wd, relative), nil
 }
 
-func ImportMap(name string, fromFile *typing.File) typing.Throwable {
+func ImportModule(name string, fromFile *typing.File) typing.Throwable {
+	var mName string
 	var fName string
+
+	if cache, ok := importCache[name]; ok {
+		return typing.Return{Data: cache}
+	}
 
 	if strings.HasPrefix(name, "./") || strings.HasPrefix(name, "../") {
 		fName = filepath.Join(fromFile.Path, name+FileExtension)
+		mName = fName
 	} else {
+		mName = name
 		fName = fmt.Sprintf("lib/%s/_index.car", name)
 
 		// tmp
@@ -65,9 +99,9 @@ func ImportMap(name string, fromFile *typing.File) typing.Throwable {
 	e := BuiltinEnv()
 	_, file := RunFile(fName, e)
 
-	m := typing.NewMap()
-	for name, o := range file.Props {
-		m.Items[hash.HashString(name)] = typing.Pair{Key: typing.String{Value: name}, Value: o}
+	m := typing.Module{
+		Name:  mName,
+		Items: file.Props,
 	}
 
 	importCache[fName] = m

@@ -415,3 +415,7 @@ type Appendable interface {
 type Containable interface {
     Contains(Object) (Object, Throwable)
 }
+
+type PropertyGettable interface {
+    GetProperty(name string) (Object, Object)
+}

@@ -401,7 +401,7 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 			return nil, err
 		}
 
-		callee, err = getProperty(this.Class(), prop.Name)
+		callee, err = getProperty(this, prop.Name)
 	} else {
 		callee, err = evalExpression(expr.Target, e, file)
 	}
@@ -485,10 +485,18 @@ func evalProperty(expr ast.PropertyExpression, e *env.Env, file *typing.File) (t
 		return nil, err
 	}
 
-	return getProperty(target.Class(), expr.Name)
+	return getProperty(target, expr.Name)
 }
 
 func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable) {
+	if o, ok := o.(typing.PropertyGettable); ok {
+		p, err := o.GetProperty(name)
+		if err != nil {
+			return nil, typing.Throw{Data: err}
+		}
+		return p, nil
+	}
+
 	p, ok := o.Class().Properties[name]
 	if !ok {
 		return nil, typing.NewError(fmt.Sprintf("'%s' has no such property '%s'", o.ToString(), name))
