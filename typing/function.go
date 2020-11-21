@@ -9,7 +9,7 @@ var _ Callable = BFunction{}
 type BFunction struct {
 	Name string
 	Dat  ParamData
-	Cal  func(this Object, args []Object, file *File) Throwable
+	Cal  func(this Object, params map[string]Object, args []Object, kwArgs map[string]Object, file *File) Throwable
 }
 
 func (o BFunction) Data() ParamData {
@@ -24,6 +24,6 @@ func (o BFunction) Class() Class {
 	return Class{Name: fmt.Sprintf("function<%s>", o.Name)}
 }
 
-func (o BFunction) Call(this Object, args []Object, file *File) Throwable {
-	return o.Cal(this, args, file)
+func (o BFunction) Call(this Object, params map[string]Object, args []Object, kwArgs map[string]Object, file *File) Throwable {
+	return o.Cal(this, params, args, kwArgs, file)
 }

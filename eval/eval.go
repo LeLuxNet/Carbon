@@ -414,31 +414,73 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 		return nil, typing.NewError("You can only call functions")
 	}
 
-	var args []typing.Object
-	for _, arg := range expr.Arguments {
-		object, err := evalExpression(arg, e, file)
+	params := make(map[string]typing.Object)
+
+	data := fun.Data()
+	minArgs := 0
+	scope := 0
+	var j int
+	for i, arg := range data.Params {
+		j = i
+		if arg.Default == nil {
+			minArgs++
+		}
+
+		if scope == 0 {
+			if len(expr.Args) > i {
+				object, err := evalExpression(expr.Args[i], e, file)
+				if err != nil {
+					return nil, err
+				}
+
+				params[arg.Name] = object
+			} else {
+				scope = 1
+			}
+		}
+
+		if scope == 1 {
+			if a, ok := expr.KwArgs[arg.Name]; ok {
+				object, err := evalExpression(a, e, file)
+				if err != nil {
+					return nil, err
+				}
+
+				params[arg.Name] = object
+				delete(expr.KwArgs, arg.Name)
+			} else if arg.Default != nil {
+				params[arg.Name] = arg.Default
+			} else {
+				return nil, typing.NewError("Missing a non optional argument")
+			}
+		}
+	}
+
+	arg := append(expr.Args[j:], expr.Args2...)
+	args := make([]typing.Object, len(arg))
+	for i, a := range arg {
+		object, err := evalExpression(a, e, file)
 		if err != nil {
 			return nil, err
 		}
 
-		args = append(args, object)
+		args[i] = object
 	}
 
-	data := fun.Data()
-	minArgs := 0
-	for _, arg := range data.Params {
-		if arg.Default == nil {
-			minArgs++
+	for name, exp := range expr.KwArgs {
+		expr.KwArgs2[name] = exp
+	}
+	kwArgs := make(map[string]typing.Object, len(expr.KwArgs2))
+	for name, a := range expr.KwArgs2 {
+		object, err := evalExpression(a, e, file)
+		if err != nil {
+			return nil, err
 		}
+
+		kwArgs[name] = object
 	}
 
-	if len(args) < minArgs {
-		return nil, typing.NewError("More args needed")
-	} else if len(args) > len(data.Params) && data.Args == "" {
-		return nil, typing.NewError("Less args needed")
-	}
-
-	err = fun.Call(this, args, file)
+	err = fun.Call(this, params, args, kwArgs, file)
 	if ret, ok := err.(typing.Return); ok {
 		return ret.Data, nil
 	}

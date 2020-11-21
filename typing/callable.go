@@ -2,7 +2,7 @@ package typing
 
 type Callable interface {
 	Data() ParamData
-	Call(this Object, args []Object, file *File) Throwable
+	Call(this Object, params map[string]Object, args []Object, kwArgs map[string]Object, file *File) Throwable
 }
 
 type Parameter struct {

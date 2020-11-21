@@ -33,8 +33,11 @@ type VariableExpression struct {
 }
 
 type CallExpression struct {
-	Target    Expression
-	Arguments []Expression
+	Target  Expression
+	Args    []Expression
+	Args2   []Expression
+	KwArgs  map[string]Expression
+	KwArgs2 map[string]Expression
 }
 
 type IndexExpression struct {

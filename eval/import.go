@@ -19,14 +19,14 @@ func InitImportFun() {
 		Dat: typing.ParamData{
 			Params: []typing.Parameter{
 				{
-					"name",
-					typing.StringClass,
-					typing.String{},
+					Name: "name",
+					Type: typing.StringClass,
 				},
 			},
 		},
-		Cal: func(_ typing.Object, args []typing.Object, file *typing.File) typing.Throwable {
-			return ImportModule(args[0].ToString(), file)
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, file *typing.File) typing.Throwable {
+			name, _ := params["name"]
+			return ImportModule(name.ToString(), file)
 		},
 	}
 }
@@ -42,8 +42,9 @@ var Sys = typing.Module{Name: "sys", Items: map[string]typing.Object{
 				},
 			},
 		},
-		Cal: func(_ typing.Object, args []typing.Object, _ *typing.File) typing.Throwable {
-			i := args[0].(typing.Int).Value.Int64()
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			l, _ := params["len"]
+			i := l.(typing.Int).Value.Int64()
 
 			b := make([]byte, i)
 			_, err := rand.Read(b)
@@ -82,7 +83,7 @@ func ImportModule(name string, fromFile *typing.File) typing.Throwable {
 		mName = fName
 	} else {
 		mName = name
-		fName = fmt.Sprintf("lib/%s/_index.car", name)
+		fName = fmt.Sprintf("lib/%s/_index.car", strings.ReplaceAll(name, ".", "/"))
 
 		// tmp
 		var err error
@@ -97,7 +98,10 @@ func ImportModule(name string, fromFile *typing.File) typing.Throwable {
 	}
 
 	e := BuiltinEnv()
-	_, file := RunFile(fName, e)
+	code, file := RunFile(fName, e)
+	if code != 0 {
+		return typing.NewError("Import failed")
+	}
 
 	m := typing.Module{
 		Name:  mName,

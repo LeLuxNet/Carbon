@@ -489,22 +489,47 @@ func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
 
 func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
 	var args []ast.Expression
+	var args2 []ast.Expression
+	kwArgs := make(map[string]ast.Expression)
+	kwArgs2 := make(map[string]ast.Expression)
 
-	if p.Position < len(p.Tokens) &&
-		p.Tokens[p.Position].Type != token.RightParen {
+	scope := 0
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightParen {
+		var name string
+		if len(p.Tokens) > p.Position+2 &&
+			p.Tokens[p.Position].Type == token.Identifier &&
+			p.Tokens[p.Position+1].Type == token.Equal {
+
+			name = p.Tokens[p.Position].Literal
+			if scope == 0 || scope == 2 {
+				scope++
+			}
+			p.Position += 2
+		} else if scope == 1 {
+			scope = 2
+		}
 
 		expr, err := p.expression()
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, expr)
 
-		for p.match(token.Comma) {
-			expr, err := p.expression()
-			if err != nil {
-				return nil, err
+		if name == "" {
+			if scope == 2 {
+				args2 = append(args2, expr)
+			} else {
+				args = append(args, expr)
 			}
-			args = append(args, expr)
+		} else {
+			if scope == 3 {
+				kwArgs2[name] = expr
+			} else {
+				kwArgs[name] = expr
+			}
+		}
+
+		if !p.match(token.Comma) {
+			break
 		}
 	}
 
@@ -513,7 +538,7 @@ func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError)
 		return nil, err
 	}
 
-	return ast.CallExpression{Target: expr, Arguments: args}, nil
+	return ast.CallExpression{Target: expr, Args: args, Args2: args2, KwArgs: kwArgs, KwArgs2: kwArgs2}, nil
 }
 
 func (p *Parser) index(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {

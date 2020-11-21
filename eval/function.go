@@ -20,15 +20,20 @@ func (o Function) Data() typing.ParamData {
 	return o.PData
 }
 
-func (o Function) Call(this typing.Object, args []typing.Object, file *typing.File) typing.Throwable {
+func (o Function) Call(this typing.Object, params map[string]typing.Object, args []typing.Object, _ map[string]typing.Object, file *typing.File) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
 
 	if this != nil {
 		e.Define("this", this, nil, false, true)
 	}
 
-	for i, param := range o.PData.Params {
-		e.Define(param.Name, args[i], &param.Type, false, false)
+	for _, param := range o.PData.Params {
+		val, _ := params[param.Name]
+		e.Define(param.Name, val, &param.Type, false, false)
+	}
+
+	if o.PData.Args != "" {
+		e.Define(o.PData.Args, typing.Array{Values: args}, nil, false, true)
 	}
 
 	_, err := evalStmt(o.Stmt, e, file)

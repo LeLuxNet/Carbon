@@ -10,7 +10,7 @@ var DoubleClass = NewNativeClass("double", Properties{
 	"floor": BFunction{
 		Name: "floor",
 		Dat:  ParamData{},
-		Cal: func(this Object, _ []Object, _ *File) Throwable {
+		Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
 			t, _ := this.(Double)
 
 			i, _ := t.Value.Int(new(big.Int))
