@@ -3,7 +3,6 @@ package lexer
 import (
 	"github.com/leluxnet/carbon/errors"
 	"github.com/leluxnet/carbon/token"
-	"strings"
 )
 
 const AutoSemi = true
@@ -292,9 +291,37 @@ func isDigit(c rune) bool {
 
 func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 	col := l.Column - 1
-	pos := l.Position
 
-	for !l.isEnd() && l.Chars[l.Position] != '"' && l.Chars[l.Position] != '\n' {
+	esc := false
+	var res []rune
+	for !l.isEnd() && l.Chars[l.Position] != '\n' {
+		c := l.Chars[l.Position]
+
+		if esc {
+			switch c {
+			case '\\':
+			case '"':
+				res = append(res, c)
+			case 't':
+				res = append(res, '\t')
+			case 'r':
+				res = append(res, '\r')
+			case 'n':
+				res = append(res, '\n')
+			case 'v':
+				res = append(res, '\v')
+			case 'f':
+				res = append(res, '\f')
+			}
+			esc = false
+		} else if c == '"' {
+			break
+		} else if c == '\\' {
+			esc = true
+		} else {
+			res = append(res, c)
+		}
+
 		l.Position++
 		l.Column++
 	}
@@ -308,11 +335,7 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 	l.Position++
 	l.Column++
 
-	val := string(l.Chars[pos : l.Position-1])
-	val = strings.ReplaceAll(val, "\\t", "\t")
-	val = strings.ReplaceAll(val, "\\n", "\n")
-
-	return &token.Token{Type: token.String, Literal: val,
+	return &token.Token{Type: token.String, Literal: string(res),
 		Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Position}, nil
 }
 

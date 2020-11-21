@@ -31,6 +31,7 @@ func InitImportFun() {
 			return ImportModule(name.ToString(), file)
 		},
 	}
+	typing.InitStringClass()
 }
 
 var Internal = typing.Module{Name: "_internal", Items: map[string]typing.Object{

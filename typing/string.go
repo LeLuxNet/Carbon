@@ -5,11 +5,15 @@ import (
 	"github.com/leluxnet/carbon/math"
 	"math/big"
 	"strings"
+	"unicode"
 )
 
 const (
-	toUpperCaseS = "toUpperCase"
-	toLowerCaseS = "toLowerCase"
+	toUpperCaseS   = "toUpperCase"
+	toLowerCaseS   = "toLowerCase"
+	capitalizeS    = "capitalize"
+	capitalizeAllS = "capitalizeAll"
+	splitS         = "split"
 )
 
 var toUpperCase = BFunction{Name: toUpperCaseS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
@@ -22,10 +26,48 @@ var toLowerCase = BFunction{Name: toLowerCaseS, Cal: func(this Object, _ map[str
 	return Return{String{strings.ToLower(t.Value)}}
 }}
 
+var capitalize = BFunction{Name: capitalizeS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+	t, _ := this.(String)
+	if len(t.Value) == 0 {
+		return Return{String{""}}
+	}
+
+	res := []rune(strings.ToLower(t.Value))
+	res[0] = unicode.ToUpper(res[0])
+
+	return Return{String{string(res)}}
+}}
+
+var capitalizeAll = BFunction{Name: capitalizeAllS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+	t, _ := this.(String)
+	return Return{String{strings.Title(strings.ToLower(t.Value))}}
+}}
+
+var split = BFunction{Name: splitS, Dat: ParamData{Params: []Parameter{{Name: "sep", Type: StringClass, Default: String{" "}}}},
+	Cal: func(this Object, params map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+		t, _ := this.(String)
+
+		tmpSep, _ := params["sep"]
+		sep := tmpSep.(String)
+
+		var res []Object
+		for _, s := range strings.Split(t.Value, sep.Value) {
+			res = append(res, String{s})
+		}
+
+		return Return{Array{res}}
+	}}
+
 var StringClass = NewNativeClass("string", Properties{
-	toUpperCaseS: toUpperCase,
-	toLowerCaseS: toLowerCase,
+	toUpperCaseS:   toUpperCase,
+	toLowerCaseS:   toLowerCase,
+	capitalizeS:    capitalize,
+	capitalizeAllS: capitalizeAll,
 })
+
+func InitStringClass() {
+	StringClass.Properties[splitS] = split
+}
 
 var _ Object = String{}
 
