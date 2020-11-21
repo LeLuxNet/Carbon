@@ -3,6 +3,7 @@ package lexer
 import (
 	"github.com/leluxnet/carbon/errors"
 	"github.com/leluxnet/carbon/token"
+	"strings"
 )
 
 const AutoSemi = true
@@ -284,7 +285,11 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 	l.Position++
 	l.Column++
 
-	return &token.Token{Type: token.String, Literal: string(l.Chars[pos : l.Position-1]),
+	val := string(l.Chars[pos : l.Position-1])
+	val = strings.ReplaceAll(val, "\\t", "\t")
+	val = strings.ReplaceAll(val, "\\n", "\n")
+
+	return &token.Token{Type: token.String, Literal: val,
 		Line: l.Line, Column: col, ToLine: l.Line, ToColumn: l.Position}, nil
 }
 
