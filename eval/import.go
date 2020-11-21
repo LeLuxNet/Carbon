@@ -4,9 +4,11 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/leluxnet/carbon/typing"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const FileExtension = ".car"
@@ -31,7 +33,7 @@ func InitImportFun() {
 	}
 }
 
-var Sys = typing.Module{Name: "sys", Items: map[string]typing.Object{
+var Internal = typing.Module{Name: "_internal", Items: map[string]typing.Object{
 	"_urandom": typing.BFunction{
 		Name: "_urandom",
 		Dat: typing.ParamData{
@@ -55,10 +57,16 @@ var Sys = typing.Module{Name: "sys", Items: map[string]typing.Object{
 			return typing.Return{Data: typing.Bytes{Values: b}}
 		},
 	},
+	"_unixTime": typing.BFunction{
+		Name: "_unixTime",
+		Cal: func(_ typing.Object, _ map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			return typing.Return{Data: typing.Int{Value: big.NewInt(time.Now().Unix())}}
+		},
+	},
 }}
 
 var importCache = map[string]typing.Module{
-	"sys": Sys,
+	"_internal": Internal,
 }
 
 func AbsPath(relative string) (string, error) {
