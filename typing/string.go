@@ -60,27 +60,35 @@ var split = BFunction{Name: splitS, Dat: ParamData{Params: []Parameter{{Name: "s
 		return Return{Array{res}}
 	}}
 
-var parseInt = BFunction{Name: parseIntS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
-	t, _ := this.(String)
+var parseInt = BFunction{Name: parseIntS, Dat: ParamData{Params: []Parameter{{Name: "base", Type: Int{}.Class(), Default: Int{big.NewInt(10)}}}},
+	Cal: func(this Object, params map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+		t, _ := this.(String)
 
-	num, success := new(big.Int).SetString(t.Value, 10)
-	if !success {
-		return NewError("Can't parse int")
-	}
+		tmpBase, _ := params["base"]
+		base := int(tmpBase.(Int).Value.Int64())
 
-	return Return{Int{num}}
-}}
+		num, success := new(big.Int).SetString(t.Value, base)
+		if !success {
+			return NewError("Can't parse int")
+		}
 
-var parseDouble = BFunction{Name: parseDoubleS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
-	t, _ := this.(String)
+		return Return{Int{num}}
+	}}
 
-	num, _, err := new(big.Float).Parse(t.Value, 10)
-	if err != nil {
-		return NewError("Can't parse double")
-	}
+var parseDouble = BFunction{Name: parseDoubleS, Dat: ParamData{Params: []Parameter{{Name: "base", Type: Int{}.Class(), Default: Int{big.NewInt(10)}}}},
+	Cal: func(this Object, params map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+		t, _ := this.(String)
 
-	return Return{Double{num}}
-}}
+		tmpBase, _ := params["base"]
+		base := int(tmpBase.(Int).Value.Int64())
+
+		num, _, err := new(big.Float).Parse(t.Value, base)
+		if err != nil {
+			return NewError("Can't parse double")
+		}
+
+		return Return{Double{num}}
+	}}
 
 var StringClass = NewNativeClass("string", Properties{
 	toUpperCaseS:   toUpperCase,
