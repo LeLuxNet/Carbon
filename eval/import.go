@@ -60,7 +60,7 @@ var Internal = typing.Module{Name: "_internal", Items: map[string]typing.Object{
 	"_unixTime": typing.BFunction{
 		Name: "_unixTime",
 		Cal: func(_ typing.Object, _ map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
-			return typing.Return{Data: typing.Int{Value: big.NewInt(time.Now().Unix())}}
+			return typing.Return{Data: typing.Int{Value: big.NewInt(time.Now().UnixNano())}}
 		},
 	},
 }}

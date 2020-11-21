@@ -120,6 +120,28 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 	case '/':
 		if l.isNextChar('/') {
 			l.waitForChar('\n')
+			semi = lastSemi
+		} else if l.isNextChar('*') {
+			count := 1
+			for count > 0 {
+				if l.Position > len(l.Chars) {
+					break
+				}
+
+				if l.Chars[l.Position-1] == '/' && l.Chars[l.Position] == '*' {
+					count++
+				} else if l.Chars[l.Position-1] == '*' && l.Chars[l.Position] == '/' {
+					count--
+				}
+
+				l.Position++
+				if l.Chars[l.Position-1] == '\n' {
+					l.Line++
+					l.Column = 0
+				} else {
+					l.Column++
+				}
+			}
 		} else if l.isNextChar('=') {
 			tok = token.SlashEqual
 		} else {
@@ -190,6 +212,7 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 	case '~':
 		tok = token.Tilde
 	case ' ':
+		semi = lastSemi
 	case '\r':
 	case '\t':
 		break
