@@ -14,6 +14,8 @@ const (
 	capitalizeS    = "capitalize"
 	capitalizeAllS = "capitalizeAll"
 	splitS         = "split"
+	parseIntS      = "parseInt"
+	parseDoubleS   = "parseDouble"
 )
 
 var toUpperCase = BFunction{Name: toUpperCaseS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
@@ -58,11 +60,35 @@ var split = BFunction{Name: splitS, Dat: ParamData{Params: []Parameter{{Name: "s
 		return Return{Array{res}}
 	}}
 
+var parseInt = BFunction{Name: parseIntS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+	t, _ := this.(String)
+
+	num, success := new(big.Int).SetString(t.Value, 10)
+	if !success {
+		return NewError("Can't parse int")
+	}
+
+	return Return{Int{num}}
+}}
+
+var parseDouble = BFunction{Name: parseDoubleS, Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
+	t, _ := this.(String)
+
+	num, _, err := new(big.Float).Parse(t.Value, 10)
+	if err != nil {
+		return NewError("Can't parse double")
+	}
+
+	return Return{Double{num}}
+}}
+
 var StringClass = NewNativeClass("string", Properties{
 	toUpperCaseS:   toUpperCase,
 	toLowerCaseS:   toLowerCase,
 	capitalizeS:    capitalize,
 	capitalizeAllS: capitalizeAll,
+	parseIntS:      parseInt,
+	parseDoubleS:   parseDouble,
 })
 
 func InitStringClass() {

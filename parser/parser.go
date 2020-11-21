@@ -575,7 +575,6 @@ func (p *Parser) literal() (ast.Expression, *errors.SyntaxError) {
 	} else if p.match(token.Int) {
 		num, success := new(big.Int).SetString(p.previous().Literal, 10)
 		if !success {
-			fmt.Println(p.previous())
 			return nil, &errors.SyntaxError{Message: "Can't parse int"}
 		}
 		return ast.LiteralExpression{Object: typing.Int{Value: num}}, nil

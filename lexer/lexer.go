@@ -222,10 +222,13 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 			tok = token.Semicolon
 		}
 	case '"':
-		tok, err := l.string()
+		tok, err := l.string(false)
 		return tok, true, err
 	case '\'':
 		tok, err := l.char()
+		return tok, true, err
+	case '`':
+		tok, err := l.string(true)
 		return tok, true, err
 	case 'm':
 		if l.isNextChar('{') {
@@ -289,12 +292,12 @@ func isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
-func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
+func (l *Lexer) string(template bool) (*token.Token, *errors.SyntaxError) {
 	col := l.Column - 1
 
 	esc := false
 	var res []rune
-	for !l.isEnd() && l.Chars[l.Position] != '\n' {
+	for !l.isEnd() && (template || l.Chars[l.Position] != '\n') {
 		c := l.Chars[l.Position]
 
 		if esc {
@@ -314,7 +317,7 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 				res = append(res, '\f')
 			}
 			esc = false
-		} else if c == '"' {
+		} else if template && c == '`' || !template && c == '"' {
 			break
 		} else if c == '\\' {
 			esc = true
@@ -328,7 +331,7 @@ func (l *Lexer) string() (*token.Token, *errors.SyntaxError) {
 
 	if l.isEnd() {
 		return nil, &errors.SyntaxError{Message: "File ended with open string", Line: l.Line, Column: l.Column}
-	} else if l.Chars[l.Position] == '\n' {
+	} else if !template && l.Chars[l.Position] == '\n' {
 		return nil, &errors.SyntaxError{Message: "Line ended with open string", Line: l.Line, Column: l.Column}
 	}
 
