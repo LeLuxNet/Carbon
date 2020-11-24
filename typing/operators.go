@@ -419,3 +419,7 @@ type Containable interface {
 type PropertyGettable interface {
     GetProperty(name string) (Object, Object)
 }
+
+type PropertySettable interface {
+    SetProperty(name string, object Object) Object
+}

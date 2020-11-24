@@ -56,6 +56,8 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 		return nil, evalBlock(stmt, e, file)
 	case ast.ExpressionStmt:
 		return evalExpression(stmt.Expr, e, file)
+	case ast.SetPropertyStatement:
+		return nil, evalSProperty(stmt, e, file)
 	}
 	return nil, nil
 }
@@ -545,6 +547,20 @@ func evalProperty(expr ast.PropertyExpression, e *env.Env, file *typing.File) (t
 	return getProperty(target, expr.Name)
 }
 
+func evalSProperty(expr ast.SetPropertyStatement, e *env.Env, file *typing.File) typing.Throwable {
+	target, err := evalExpression(expr.Target, e, file)
+	if err != nil {
+		return err
+	}
+
+	o, err := evalExpression(expr.Object, e, file)
+	if err != nil {
+		return err
+	}
+
+	return setProperty(target, expr.Name, o)
+}
+
 func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable) {
 	if o, ok := o.(typing.PropertyGettable); ok {
 		p, err := o.GetProperty(name)
@@ -560,6 +576,19 @@ func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable)
 	}
 
 	return p, nil
+}
+
+func setProperty(o typing.Object, name string, val typing.Object) typing.Throwable {
+	if o, ok := o.(typing.PropertySettable); ok {
+		err := o.SetProperty(name, val)
+		if err != nil {
+			return typing.Throw{Data: err}
+		}
+		return nil
+	}
+
+	o.Class().Properties[name] = val
+	return nil
 }
 
 func evalUnary(expr ast.UnaryExpression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {

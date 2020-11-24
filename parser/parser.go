@@ -79,7 +79,26 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 			}
 		}
 		if !success {
-			res, err = p.expressionStmt()
+			expr, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+
+			if p.match(token.Equal) {
+				switch expr := expr.(type) {
+				case ast.PropertyExpression:
+					val, err := p.expression()
+					if err != nil {
+						return nil, err
+					}
+
+					res = ast.SetPropertyStatement{Target: expr.Target, Name: expr.Name, Object: val}
+				}
+			}
+
+			if res == nil {
+				res = ast.ExpressionStmt{Expr: expr}
+			}
 		}
 	}
 
@@ -407,15 +426,6 @@ func (p *Parser) blockStmt() (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.BlockStmt{Body: stmts}, err
-}
-
-func (p *Parser) expressionStmt() (ast.Statement, *errors.SyntaxError) {
-	expr, err := p.expression()
-
-	if err != nil {
-		return nil, err
-	}
-	return ast.ExpressionStmt{Expr: expr}, nil
 }
 
 func (p *Parser) expression() (ast.Expression, *errors.SyntaxError) {

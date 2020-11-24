@@ -24,17 +24,12 @@ func NewNativeClass(name string, properties Properties) Class {
 	return Class{Name: name, Properties: properties}
 }
 
-func (o Class) GetProp(name string) (Object, bool) {
-	val, ok := o.Properties[name]
-	return val, ok
-}
-
 func (o Class) Data() ParamData {
 	return ParamData{}
 }
 
 func (o Class) Call(_ Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
-	return Return{Instance{class: o}}
+	return Return{Instance{class: o, fields: make(map[string]Object)}}
 }
 
 func (o Class) ToString() string {
