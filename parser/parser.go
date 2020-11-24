@@ -88,13 +88,17 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	}
 
 	if semi {
-		err = p.consume(token.Semicolon, "Semicolon needed")
+		err = p.consumeSemi()
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return res, nil
+}
+
+func (p *Parser) consumeSemi() *errors.SyntaxError {
+	return p.consume(token.Semicolon, "Semicolon needed")
 }
 
 func nameByConst(c bool) string {
@@ -288,16 +292,27 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	props := make(map[string]ast.Statement)
+	var props []ast.Statement
 	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
-		if p.match(token.Fun) {
+		if p.match(token.Val) || p.match(token.Var) {
+			val, err := p.varStmt(p.previous().Type == token.Val)
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consumeSemi()
+			if err != nil {
+				return nil, err
+			}
+
+			props = append(props, val)
+		} else if p.match(token.Fun) {
 			val, err := p.funStmt("method")
 			if err != nil {
 				return nil, err
 			}
 
-			v, _ := val.(ast.FunStmt)
-			props[v.Name] = v
+			props = append(props, val)
 		}
 	}
 

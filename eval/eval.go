@@ -99,30 +99,41 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 		return err
 	}
 
-	for name, prop := range expr.Names {
+	data, err := deconstruct(val, expr.Names, e, file)
+	if err != nil {
+		return err
+	}
+
+	for name, val := range data {
+		err = e.Define(name, val, nil, false, expr.Const)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func deconstruct(val typing.Object, names map[string]ast.Expression, e *env.Env, file *typing.File) (map[string]typing.Object, typing.Throwable) {
+	res := make(map[string]typing.Object, len(names))
+	for name, prop := range names {
 		if prop == nil {
-			err := e.Define(name, val, nil, false, expr.Const)
-			if err != nil {
-				return err
-			}
+			res[name] = val
 		} else {
 			p, err := evalExpression(prop, e, file)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			pVal, err := getIndex(val, p)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			err = e.Define(name, pVal, nil, false, expr.Const)
-			if err != nil {
-				return err
-			}
+			res[name] = pVal
 		}
 	}
-	return nil
+	return res, nil
 }
 
 func evalAssignment(expr ast.AssignStmt, e *env.Env, file *typing.File) typing.Throwable {
@@ -224,8 +235,9 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, file *typing.File) typing.Thr
 
 func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
 	p := make(typing.Properties, len(expr.Properties))
-	for name, val := range expr.Properties {
-		if val, ok := val.(ast.FunStmt); ok {
+	for _, val := range expr.Properties {
+		switch val := val.(type) {
+		case ast.FunStmt:
 			fun := Function{
 				Name:  val.Name,
 				PData: val.Data,
@@ -233,14 +245,17 @@ func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing
 				Env:   e,
 			}
 
-			p[name] = fun
-		} else {
-			v, err := evalStmt(val, e, file)
+			p[fun.Name] = fun
+		case ast.VarStmt:
+			o, err := evalExpression(val.Expr, e, file)
 			if err != nil {
 				return "", nil, err
 			}
 
-			p[name] = v
+			data, err := deconstruct(o, val.Names, e, file)
+			for name, val := range data {
+				p[name] = val
+			}
 		}
 	}
 
@@ -249,7 +264,7 @@ func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing
 		Properties: p,
 	}
 
-	return "", class, nil
+	return expr.Name, class, nil
 }
 
 func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {

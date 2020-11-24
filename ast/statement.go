@@ -45,7 +45,7 @@ type FunStmt struct {
 
 type ClassStmt struct {
 	Name       string
-	Properties map[string]Statement
+	Properties []Statement
 }
 
 type ReturnStmt struct {
