@@ -292,6 +292,10 @@ func isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
+func isAlphaDigit(c rune) bool {
+	return isAlpha(c) || isDigit(c)
+}
+
 func (l *Lexer) string(template bool) (*token.Token, *errors.SyntaxError) {
 	col := l.Column - 1
 
@@ -395,7 +399,7 @@ func (l *Lexer) identifier() (token.Token, bool) {
 	pos := l.Position - 1
 	col := l.Column - 1
 
-	for !l.isEnd() && isAlpha(l.Chars[l.Position]) {
+	for !l.isEnd() && isAlphaDigit(l.Chars[l.Position]) {
 		l.Position++
 		l.Column++
 	}

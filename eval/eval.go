@@ -96,9 +96,16 @@ func evalExpression(expr ast.Expression, e *env.Env, file *typing.File) (typing.
 }
 
 func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
-	val, err := evalExpression(expr.Expr, e, file)
-	if err != nil {
-		return err
+	var err typing.Throwable
+
+	var val typing.Object
+	if expr.Expr == nil {
+		val = typing.Null{}
+	} else {
+		val, err = evalExpression(expr.Expr, e, file)
+		if err != nil {
+			return err
+		}
 	}
 
 	data, err := deconstruct(val, expr.Names, e, file)
@@ -107,7 +114,7 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 	}
 
 	for name, val := range data {
-		err = e.Define(name, val, nil, false, expr.Const)
+		err = e.Define(name, val, nil, val == nil, expr.Const)
 		if err != nil {
 			return err
 		}

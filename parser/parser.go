@@ -189,14 +189,12 @@ func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	err = p.consume(token.Equal, "Expect '=' after variable name")
-	if err != nil {
-		return nil, err
-	}
-
-	expr, err := p.expression()
-	if err != nil {
-		return nil, err
+	var expr ast.Expression
+	if p.match(token.Equal) {
+		expr, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return ast.VarStmt{Names: names, Expr: expr, Const: c}, nil
