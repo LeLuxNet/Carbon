@@ -12,7 +12,8 @@ type Parameter struct {
 }
 
 type ParamData struct {
-	Params []Parameter
-	Args   string
-	KwArgs string
+	Params     []Parameter
+	Args       string
+	KwArgs     string
+	ReturnType Class
 }

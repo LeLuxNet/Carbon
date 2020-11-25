@@ -28,8 +28,8 @@ func (o Class) Data() ParamData {
 	return ParamData{}
 }
 
-func (o Class) Call(_ Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
-	return Return{Instance{class: o, fields: make(map[string]Object)}}
+func (o Class) Call(_ Object, _ map[string]Object, _ []Object, _ map[string]Object, file *File) Throwable {
+	return Return{Instance{class: o, fields: make(map[string]Object), file: file}}
 }
 
 func (o Class) ToString() string {
