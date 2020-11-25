@@ -114,7 +114,7 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 	}
 
 	for name, val := range data {
-		err = e.Define(name, val, nil, val == nil, expr.Const)
+		err = e.Define(name, val.Val, val.Class, val.Val == nil, expr.Const)
 		if err != nil {
 			return err
 		}
@@ -123,13 +123,32 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 	return nil
 }
 
-func deconstruct(val typing.Object, names map[string]ast.Expression, e *env.Env, file *typing.File) (map[string]typing.Object, typing.Throwable) {
-	res := make(map[string]typing.Object, len(names))
+type DeconRes struct {
+	Val   typing.Object
+	Class *typing.Class
+}
+
+func deconstruct(val typing.Object, names map[string]ast.DeconData, e *env.Env, file *typing.File) (map[string]DeconRes, typing.Throwable) {
+	res := make(map[string]DeconRes, len(names))
 	for name, prop := range names {
-		if prop == nil {
-			res[name] = val
+		var class *typing.Class
+		if prop.T != "" {
+			cl, err := e.Get(prop.T)
+			if err != nil {
+				return nil, err
+			}
+
+			if cl, ok := cl.(typing.Class); ok {
+				class = &cl
+			} else {
+				return nil, typing.NewError("Type annotation has to be a class")
+			}
+		}
+
+		if prop.Expr == nil {
+			res[name] = DeconRes{val, class}
 		} else {
-			p, err := evalExpression(prop, e, file)
+			p, err := evalExpression(prop.Expr, e, file)
 			if err != nil {
 				return nil, err
 			}
@@ -139,7 +158,7 @@ func deconstruct(val typing.Object, names map[string]ast.Expression, e *env.Env,
 				return nil, err
 			}
 
-			res[name] = pVal
+			res[name] = DeconRes{pVal, nil}
 		}
 	}
 	return res, nil
@@ -262,8 +281,11 @@ func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing
 			}
 
 			data, err := deconstruct(o, val.Names, e, file)
+			if err != nil {
+				return "", nil, err
+			}
 			for name, val := range data {
-				p[name] = val
+				p[name] = val.Val
 			}
 		}
 	}

@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+var IntClass = NewNativeClass("int", Properties{})
+
 var _ Object = Int{}
 
 type Int struct {
@@ -17,7 +19,7 @@ func (o Int) ToString() string {
 }
 
 func (o Int) Class() Class {
-	return NewNativeClass("int", Properties{})
+	return IntClass
 }
 
 func (o Int) Eq(other Object) (Object, Throwable) {

@@ -128,8 +128,8 @@ func nameByConst(c bool) string {
 	}
 }
 
-func (p *Parser) deconstructMap() (map[string]ast.Expression, *errors.SyntaxError) {
-	res := make(map[string]ast.Expression)
+func (p *Parser) deconstructMap() (map[string]ast.DeconData, *errors.SyntaxError) {
+	res := make(map[string]ast.DeconData)
 
 	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
 		err := p.consume(token.Identifier, "Expect identifier in map")
@@ -142,7 +142,7 @@ func (p *Parser) deconstructMap() (map[string]ast.Expression, *errors.SyntaxErro
 			p.Tokens[p.Position].Type == token.Comma ||
 			p.Tokens[p.Position].Type == token.RightBrace {
 
-			res[assign] = ast.LiteralExpression{Object: typing.String{Value: assign}}
+			res[assign] = ast.DeconData{Expr: ast.LiteralExpression{Object: typing.String{Value: assign}}}
 		} else {
 			err := p.consume(token.Colon, "Expect ':' after key in map deconstruction")
 			if err != nil {
@@ -154,7 +154,7 @@ func (p *Parser) deconstructMap() (map[string]ast.Expression, *errors.SyntaxErro
 				return nil, err
 			}
 
-			res[assign] = expr
+			res[assign] = ast.DeconData{Expr: expr}
 		}
 
 		if !p.match(token.Comma) {
@@ -170,21 +170,31 @@ func (p *Parser) deconstructMap() (map[string]ast.Expression, *errors.SyntaxErro
 	return res, nil
 }
 
-func (p *Parser) deconstruction(c bool) (map[string]ast.Expression, *errors.SyntaxError) {
+func (p *Parser) deconstruction(c bool) (map[string]ast.DeconData, bool, *errors.SyntaxError) {
 	if len(p.Tokens) > p.Position {
 		tok := p.Tokens[p.Position]
 
 		if p.match(token.Identifier) {
-			return map[string]ast.Expression{tok.Literal: nil}, nil
+			var t string
+			if p.match(token.Colon) {
+				err := p.consume(token.Identifier, "Expect identifier as type")
+				if err != nil {
+					return nil, false, err
+				}
+				t = p.previous().Literal
+			}
+
+			return map[string]ast.DeconData{tok.Literal: {T: t}}, t != "", nil
 		} else if p.match(token.LeftBrace) {
-			return p.deconstructMap()
+			data, err := p.deconstructMap()
+			return data, false, err
 		}
 	}
-	return nil, errors.NewSyntaxError(fmt.Sprintf("Expect identifier after '%s'", nameByConst(c)), p.previous())
+	return nil, false, errors.NewSyntaxError(fmt.Sprintf("Expect identifier after '%s'", nameByConst(c)), p.previous())
 }
 
 func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
-	names, err := p.deconstruction(c)
+	names, hasType, err := p.deconstruction(c)
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +205,8 @@ func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
 		if err != nil {
 			return nil, err
 		}
+	} else if !hasType {
+		return nil, errors.NewSyntaxError("Expect type annotation or '='", p.previous())
 	}
 
 	return ast.VarStmt{Names: names, Expr: expr, Const: c}, nil

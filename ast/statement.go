@@ -9,8 +9,13 @@ type Statement interface {
 	astStatement()
 }
 
+type DeconData struct {
+	Expr Expression
+	T    string
+}
+
 type VarStmt struct {
-	Names map[string]Expression
+	Names map[string]DeconData
 	Expr  Expression
 	Const bool
 }
