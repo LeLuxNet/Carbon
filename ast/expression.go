@@ -38,6 +38,7 @@ type CallExpression struct {
 	Args2   []Expression
 	KwArgs  map[string]Expression
 	KwArgs2 map[string]Expression
+	New     bool
 }
 
 type IndexExpression struct {

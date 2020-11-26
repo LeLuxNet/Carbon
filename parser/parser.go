@@ -323,35 +323,30 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 
 	var props []ast.Statement
 	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		var val ast.Statement
+		var err *errors.SyntaxError
 		if p.match(token.Val) || p.match(token.Var) {
-			val, err := p.varStmt(p.previous().Type == token.Val)
+			val, err = p.varStmt(p.previous().Type == token.Val)
 			if err != nil {
 				return nil, err
 			}
 
 			err = p.consumeSemi()
-			if err != nil {
-				return nil, err
-			}
-
-			props = append(props, val)
-		} else if p.match(token.Get) {
-			val, err := p.getStmt()
-			if err != nil {
-				return nil, err
-			}
-
-			props = append(props, val)
 		} else if p.match(token.Fun) {
-			val, err := p.funStmt("method")
-			if err != nil {
-				return nil, err
-			}
-
-			props = append(props, val)
+			val, err = p.funStmt("method")
+		} else if p.match(token.Con) {
+			val, err = p.conStmt()
+		} else if p.match(token.Get) {
+			val, err = p.getStmt()
 		} else {
 			return nil, errors.NewSyntaxError("Only val, var, fun and get are allow in classes", p.Tokens[p.Position])
 		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		props = append(props, val)
 	}
 
 	err = p.consume(token.RightBrace, "Expect '}' after class body")
@@ -374,26 +369,7 @@ func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
 		return nil, err
 	}
 
-	var params []typing.Parameter
-	if p.Position < len(p.Tokens) &&
-		p.Tokens[p.Position].Type != token.RightParen {
-		for {
-			err = p.consume(token.Identifier, "Expect parameter name.")
-			if err != nil {
-				return nil, err
-			}
-			params = append(params, typing.Parameter{Name: p.previous().Literal})
-
-			if !p.match(token.Comma) {
-				break
-			}
-		}
-	}
-
-	err = p.consume(token.RightParen, "Expect ')' after parameters")
-	if err != nil {
-		return nil, err
-	}
+	params, err := p.parameters()
 
 	body, err := p.statement()
 	if err != nil {
@@ -405,6 +381,26 @@ func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
 		Data: typing.ParamData{Params: params},
 		Body: body,
 	}, nil
+}
+
+func (p *Parser) parameters() ([]typing.Parameter, *errors.SyntaxError) {
+	var params []typing.Parameter
+	if p.Position < len(p.Tokens) &&
+		p.Tokens[p.Position].Type != token.RightParen {
+		for {
+			err := p.consume(token.Identifier, "Expect parameter name")
+			if err != nil {
+				return nil, err
+			}
+			params = append(params, typing.Parameter{Name: p.previous().Literal})
+
+			if !p.match(token.Comma) {
+				break
+			}
+		}
+	}
+
+	return params, p.consume(token.RightParen, "Expect ')' after parameters")
 }
 
 func (p *Parser) getStmt() (ast.Statement, *errors.SyntaxError) {
@@ -421,6 +417,31 @@ func (p *Parser) getStmt() (ast.Statement, *errors.SyntaxError) {
 
 	return ast.GetterStmt{
 		Name: name,
+		Body: body,
+	}, nil
+}
+
+func (p *Parser) conStmt() (ast.Statement, *errors.SyntaxError) {
+	name := ""
+	if p.match(token.Identifier) {
+		name = p.previous().Literal
+	}
+
+	err := p.consume(token.LeftParen, "Expect '(' after 'con' or constructor name")
+	if err != nil {
+		return nil, err
+	}
+
+	params, err := p.parameters()
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.ConStmt{
+		Name: name,
+		Data: typing.ParamData{Params: params},
 		Body: body,
 	}, nil
 }
@@ -527,6 +548,8 @@ func (p *Parser) power() (ast.Expression, *errors.SyntaxError) {
 }
 
 func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
+	new := p.match(token.New)
+
 	expr, err := p.literal()
 	if err != nil {
 		return nil, err
@@ -534,7 +557,7 @@ func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
 
 	for {
 		if p.match(token.LeftParen) {
-			expr, err = p.call(expr)
+			expr, err = p.call(expr, new)
 		} else if p.match(token.LeftBracket) {
 			expr, err = p.index(expr)
 		} else if p.match(token.Dot) {
@@ -549,7 +572,7 @@ func (p *Parser) primary() (ast.Expression, *errors.SyntaxError) {
 	}
 }
 
-func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {
+func (p *Parser) call(expr ast.Expression, new bool) (ast.Expression, *errors.SyntaxError) {
 	var args []ast.Expression
 	var args2 []ast.Expression
 	kwArgs := make(map[string]ast.Expression)
@@ -600,7 +623,7 @@ func (p *Parser) call(expr ast.Expression) (ast.Expression, *errors.SyntaxError)
 		return nil, err
 	}
 
-	return ast.CallExpression{Target: expr, Args: args, Args2: args2, KwArgs: kwArgs, KwArgs2: kwArgs2}, nil
+	return ast.CallExpression{Target: expr, Args: args, Args2: args2, KwArgs: kwArgs, KwArgs2: kwArgs2, New: new}, nil
 }
 
 func (p *Parser) index(expr ast.Expression) (ast.Expression, *errors.SyntaxError) {

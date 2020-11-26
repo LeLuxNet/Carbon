@@ -1,7 +1,6 @@
 package typing
 
 var _ Object = Class{}
-var _ Callable = Class{}
 
 var toString = BFunction{Name: "toString", Cal: func(this Object, _ map[string]Object, _ []Object, _ map[string]Object, _ *File) Throwable {
 	return Return{String{this.ToString()}}
@@ -22,14 +21,6 @@ func NewNativeClass(name string, properties Properties) Class {
 	properties["Class"] = class
 
 	return Class{Name: name, Properties: properties}
-}
-
-func (o Class) Data() ParamData {
-	return ParamData{}
-}
-
-func (o Class) Call(_ Object, _ map[string]Object, _ []Object, _ map[string]Object, file *File) Throwable {
-	return Return{Instance{class: o, fields: make(map[string]Object), file: file}}
 }
 
 func (o Class) ToString() string {

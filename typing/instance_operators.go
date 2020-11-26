@@ -6,7 +6,7 @@ package typing
 
 func (o Instance) Add(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_add"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {
@@ -18,7 +18,7 @@ func (o Instance) Add(other Object, first bool) (Object, Object) {
 
 func (o Instance) Sub(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_sub"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {
@@ -30,7 +30,7 @@ func (o Instance) Sub(other Object, first bool) (Object, Object) {
 
 func (o Instance) Mul(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_mul"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {
@@ -42,7 +42,7 @@ func (o Instance) Mul(other Object, first bool) (Object, Object) {
 
 func (o Instance) Div(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_div"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {
@@ -54,7 +54,7 @@ func (o Instance) Div(other Object, first bool) (Object, Object) {
 
 func (o Instance) Mod(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_mod"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {
@@ -66,7 +66,7 @@ func (o Instance) Mod(other Object, first bool) (Object, Object) {
 
 func (o Instance) Pow(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_pow"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {

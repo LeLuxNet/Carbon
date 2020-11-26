@@ -8,20 +8,15 @@ import (
 )
 
 var _ typing.Object = Function{}
-var _ typing.Callable = Function{}
 
-type Function struct {
+type Constructor struct {
 	Name  string
 	PData typing.ParamData
 	Stmt  ast.Statement
 	Env   *env.Env
 }
 
-func (o Function) Data() typing.ParamData {
-	return o.PData
-}
-
-func (o Function) Call(this typing.Object, params map[string]typing.Object, args []typing.Object, _ map[string]typing.Object, file *typing.File) typing.Throwable {
+func (o Constructor) Const(this typing.Object, params map[string]typing.Object, args []typing.Object, _ map[string]typing.Object, file *typing.File) typing.Throwable {
 	e := env.NewEnclosedEnv(o.Env)
 
 	if this != nil {
@@ -41,14 +36,14 @@ func (o Function) Call(this typing.Object, params map[string]typing.Object, args
 	return err
 }
 
-func (o Function) ToString() string {
+func (o Constructor) ToString() string {
 	if o.Name == "" {
-		return "lambda function"
+		return "constructor"
 	} else {
-		return fmt.Sprintf("function<%s>", o.Name)
+		return fmt.Sprintf("constructor<%s>", o.Name)
 	}
 }
 
-func (o Function) Class() typing.Class {
-	return typing.NewNativeClass("function", typing.Properties{})
+func (o Constructor) Class() typing.Class {
+	return typing.NewNativeClass("constructor", typing.Properties{})
 }

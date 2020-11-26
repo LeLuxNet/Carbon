@@ -6,7 +6,7 @@ package typing
 
 func (o Instance) <a1>(other Object, first bool) (Object, Object) {
 	if fun := o.getProp("_<a2>"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{"other": other, "first": Bool{first}}, []Object{}, map[string]Object{}, o.File)
 		if ret, ok := res.(Return); ok {
 			return ret.Data, nil
 		} else {

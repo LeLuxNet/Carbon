@@ -5,33 +5,33 @@ import "fmt"
 var _ Object = Instance{}
 
 type Instance struct {
-	class  Class
-	fields map[string]Object
-	file   *File
+	Clazz  Class
+	Fields map[string]Object
+	File   *File
 }
 
 func (o Instance) ToString() string {
 	if fun := o.getProp("toString"); fun != nil {
-		res := fun.(Callable).Call(o, map[string]Object{}, []Object{}, map[string]Object{}, o.file)
+		res := fun.(Callable).Call(o, map[string]Object{}, []Object{}, map[string]Object{}, o.File)
 		if res, ok := res.(Return); ok {
 			return res.Data.(String).Value
 		} else {
 			panic(res.TData().ToString())
 		}
 	}
-	return o.class.Name
+	return o.Clazz.Name
 }
 
 func (o Instance) Class() Class {
-	return o.class
+	return o.Clazz
 }
 
 func (o Instance) getProp(name string) Object {
-	if val, ok := o.fields[name]; ok {
+	if val, ok := o.Fields[name]; ok {
 		return val
 	}
 
-	if val, ok := o.class.Properties[name]; ok {
+	if val, ok := o.Clazz.Properties[name]; ok {
 		return val
 	}
 
@@ -49,8 +49,8 @@ func (o Instance) GetProperty(name string) (Object, Object) {
 }
 
 func (o Instance) SetProperty(name string, object Object) Object {
-	if _, ok := o.class.Properties[name]; ok {
-		o.fields[name] = object
+	if _, ok := o.Clazz.Properties[name]; ok {
+		o.Fields[name] = object
 		return nil
 	}
 

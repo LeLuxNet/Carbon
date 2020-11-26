@@ -85,9 +85,11 @@ const (
 	While
 	Do
 	For
+	Class
 	Fun
 	Get
-	Class
+	Con
+	New
 
 	Return
 	Break

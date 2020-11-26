@@ -11,9 +11,11 @@ var Keywords = map[string]struct {
 	"while": {While, false},
 	"do":    {Do, false},
 	"for":   {For, false},
+	"class": {Class, false},
 	"fun":   {Fun, false},
 	"get":   {Get, false},
-	"class": {Class, false},
+	"con":   {Con, false},
+	"new":   {New, false},
 
 	"return":   {Return, true},
 	"break":    {Break, true},

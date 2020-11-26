@@ -262,23 +262,6 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 	p := make(typing.Properties, len(expr.Properties))
 	for _, val := range expr.Properties {
 		switch val := val.(type) {
-		case ast.FunStmt:
-			fun := Function{
-				Name:  val.Name,
-				PData: val.Data,
-				Stmt:  val.Body,
-				Env:   e,
-			}
-
-			p[fun.Name] = fun
-		case ast.GetterStmt:
-			get := Getter{
-				Name: val.Name,
-				Stmt: val.Body,
-				Env:  e,
-			}
-
-			p[get.Name] = get
 		case ast.VarStmt:
 			o, err := evalExpression(val.Expr, e, file)
 			if err != nil {
@@ -292,6 +275,34 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 			for name, val := range data {
 				p[name] = val.Val
 			}
+		case ast.FunStmt:
+			fun := Function{
+				Name:  val.Name,
+				PData: val.Data,
+				Stmt:  val.Body,
+				Env:   e,
+			}
+
+			p[fun.Name] = fun
+		case ast.ConStmt:
+			con := Constructor{
+				Name:  val.Name,
+				PData: val.Data,
+				Stmt:  val.Body,
+				Env:   e,
+			}
+
+			p[con.Name] = con
+		case ast.GetterStmt:
+			get := Getter{
+				Name: val.Name,
+				Stmt: val.Body,
+				Env:  e,
+			}
+
+			p[get.Name] = get
+		default:
+			panic("Parser allowed unknown statement inside a class")
 		}
 	}
 
@@ -464,14 +475,39 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 		return nil, err
 	}
 
-	fun, ok := callee.(typing.Callable)
-	if !ok {
-		return nil, typing.NewError("You can only call functions")
+	var data typing.ParamData
+
+	var fun typing.Callable
+	var con Constructor
+
+	if expr.New {
+		switch callee := callee.(type) {
+		case Constructor:
+			con = callee
+		case typing.Class:
+			this = callee
+			tmp, ok := callee.Properties[""]
+			if !ok {
+				return nil, typing.NewError("Has no nameless constructor")
+			}
+
+			con = tmp.(Constructor)
+		default:
+			return nil, typing.NewError("You can only use new to call a constructor")
+		}
+
+		data = con.PData
+	} else {
+		var ok bool
+		fun, ok = callee.(typing.Callable)
+		if !ok {
+			return nil, typing.NewError("You can only call functions")
+		}
+		data = fun.Data()
 	}
 
 	params := make(map[string]typing.Object)
 
-	data := fun.Data()
 	minArgs := 0
 	scope := 0
 	var j int
@@ -535,9 +571,16 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 		kwArgs[name] = object
 	}
 
-	err = fun.Call(this, params, args, kwArgs, file)
-	if ret, ok := err.(typing.Return); ok {
-		return ret.Data, nil
+	if expr.New {
+		class := this.(typing.Class)
+		i := typing.Instance{Clazz: class, Fields: make(map[string]typing.Object), File: file}
+		err = con.Const(i, params, args, kwArgs, file)
+		return i, nil
+	} else {
+		err = fun.Call(this, params, args, kwArgs, file)
+		if ret, ok := err.(typing.Return); ok {
+			return ret.Data, nil
+		}
 	}
 	return nil, err
 }
