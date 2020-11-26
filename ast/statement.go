@@ -48,6 +48,11 @@ type FunStmt struct {
 	Body Statement
 }
 
+type GetterStmt struct {
+	Name string
+	Body Statement
+}
+
 type ClassStmt struct {
 	Name       string
 	Properties []Statement
@@ -86,6 +91,7 @@ func (s WhileStmt) astStatement()            {}
 func (s DoWhileStmt) astStatement()          {}
 func (s ClassStmt) astStatement()            {}
 func (s FunStmt) astStatement()              {}
+func (s GetterStmt) astStatement()           {}
 func (s ReturnStmt) astStatement()           {}
 func (s BreakStmt) astStatement()            {}
 func (s ContinueStmt) astStatement()         {}

@@ -335,6 +335,13 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 			}
 
 			props = append(props, val)
+		} else if p.match(token.Get) {
+			val, err := p.getStmt()
+			if err != nil {
+				return nil, err
+			}
+
+			props = append(props, val)
 		} else if p.match(token.Fun) {
 			val, err := p.funStmt("method")
 			if err != nil {
@@ -342,6 +349,8 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 			}
 
 			props = append(props, val)
+		} else {
+			return nil, errors.NewSyntaxError("Only val, var, fun and get are allow in classes", p.Tokens[p.Position])
 		}
 	}
 
@@ -394,6 +403,24 @@ func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
 	return ast.FunStmt{
 		Name: name,
 		Data: typing.ParamData{Params: params},
+		Body: body,
+	}, nil
+}
+
+func (p *Parser) getStmt() (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, "Expect getter name")
+	if err != nil {
+		return nil, err
+	}
+	name := p.previous().Literal
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.GetterStmt{
+		Name: name,
 		Body: body,
 	}, nil
 }

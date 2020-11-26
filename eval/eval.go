@@ -271,6 +271,14 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 			}
 
 			p[fun.Name] = fun
+		case ast.GetterStmt:
+			get := Getter{
+				Name: val.Name,
+				Stmt: val.Body,
+				Env:  e,
+			}
+
+			p[get.Name] = get
 		case ast.VarStmt:
 			o, err := evalExpression(val.Expr, e, file)
 			if err != nil {
@@ -445,7 +453,7 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 			return nil, err
 		}
 
-		callee, err = getProperty(this, prop.Name)
+		callee, err = getProperty(this, prop.Name, file)
 	} else {
 		callee, err = evalExpression(expr.Target, e, file)
 	}
@@ -571,7 +579,7 @@ func evalProperty(expr ast.PropertyExpression, e *env.Env, file *typing.File) (t
 		return nil, err
 	}
 
-	return getProperty(target, expr.Name)
+	return getProperty(target, expr.Name, file)
 }
 
 func evalSProperty(expr ast.SetPropertyStatement, e *env.Env, file *typing.File) typing.Throwable {
@@ -588,12 +596,22 @@ func evalSProperty(expr ast.SetPropertyStatement, e *env.Env, file *typing.File)
 	return setProperty(target, expr.Name, o)
 }
 
-func getProperty(o typing.Object, name string) (typing.Object, typing.Throwable) {
-	if o, ok := o.(typing.PropertyGettable); ok {
-		p, err := o.GetProperty(name)
+func getProperty(o typing.Object, name string, file *typing.File) (typing.Object, typing.Throwable) {
+	if o2, ok := o.(typing.PropertyGettable); ok {
+		p, err := o2.GetProperty(name)
 		if err != nil {
 			return nil, typing.Throw{Data: err}
 		}
+
+		if get, ok := p.(Getter); ok {
+			res := get.Call(o, file)
+			if ret, ok := res.(typing.Return); ok {
+				return ret.Data, nil
+			} else {
+				return nil, res
+			}
+		}
+
 		return p, nil
 	}
 
