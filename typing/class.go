@@ -51,3 +51,10 @@ func (o Class) IsInstance(other Object) bool {
 	// TODO: Better comparison
 	return o.Name == other.Class().Name
 }
+
+func (o Class) GetProperty(name string) (Object, Object) {
+	if res, ok := o.Properties[name]; ok {
+		return res, nil
+	}
+	return nil, AttributeError{Name: name}
+}
