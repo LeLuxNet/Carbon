@@ -36,11 +36,8 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 	case ast.DoWhileStmt:
 		return nil, evalDoWhile(stmt, e, file)
 	case ast.ClassStmt:
-		name, class, err := getClass(stmt, e, file)
-		if err != nil {
-			return nil, err
-		}
-		return nil, e.Define(name, class, nil, false, true)
+		_, _, err := evalClass(stmt, e, file)
+		return nil, err
 	case ast.FunStmt:
 		_, err := evalFun(stmt, e)
 		return nil, err
@@ -261,7 +258,7 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, file *typing.File) typing.Thr
 	return nil
 }
 
-func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
+func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
 	p := make(typing.Properties, len(expr.Properties))
 	for _, val := range expr.Properties {
 		switch val := val.(type) {
@@ -295,7 +292,7 @@ func getClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing
 		Properties: p,
 	}
 
-	return expr.Name, class, nil
+	return expr.Name, class, e.Define(expr.Name, class, nil, false, true)
 }
 
 func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {
@@ -320,10 +317,11 @@ func evalReturn(expr ast.ReturnStmt, e *env.Env, file *typing.File) typing.Throw
 func evalExport(expr ast.ExportStmt, e *env.Env, file *typing.File) typing.Throwable {
 	switch body := expr.Body.(type) {
 	case ast.ClassStmt:
-		name, class, err := getClass(body, e, file)
+		name, class, err := evalClass(body, e, file)
 		if err != nil {
 			return err
 		}
+
 		file.Props[name] = class
 		return nil
 	case ast.FunStmt:

@@ -380,7 +380,7 @@ func (l *Lexer) number() token.Token {
 		l.Column++
 	}
 
-	if !l.isEnd() && l.Chars[l.Position] == '.' && (len(l.Chars) <= l.Position+1 || l.Chars[l.Position+1] == '.') {
+	if !l.isEnd() && l.Chars[l.Position] == '.' && (len(l.Chars) > l.Position+1 || l.Chars[l.Position+1] == '.') {
 		l.Position++
 		l.Column++
 

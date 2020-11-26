@@ -1,5 +1,7 @@
 package typing
 
+import "fmt"
+
 #split
 
 #def a Lt: Gt, Le: Ge, Gt: Gt, Ge: Le
@@ -51,9 +53,11 @@ func <a1>(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 #split

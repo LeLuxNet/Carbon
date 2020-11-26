@@ -4,6 +4,8 @@
 
 package typing
 
+import "fmt"
+
 type Ltable interface {
     Lt(Object) (Object, Object)
 }
@@ -119,9 +121,11 @@ func Add(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Subable interface {
@@ -143,9 +147,11 @@ func Sub(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Mulable interface {
@@ -167,9 +173,11 @@ func Mul(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Divable interface {
@@ -191,9 +199,11 @@ func Div(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Modable interface {
@@ -215,9 +225,11 @@ func Mod(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Powable interface {
@@ -239,9 +251,11 @@ func Pow(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type LShiftable interface {
@@ -263,9 +277,11 @@ func LShift(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type RShiftable interface {
@@ -287,9 +303,11 @@ func RShift(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type URShiftable interface {
@@ -311,9 +329,11 @@ func URShift(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Andable interface {
@@ -335,9 +355,11 @@ func And(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Orable interface {
@@ -359,9 +381,11 @@ func Or(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Xorable interface {
@@ -383,9 +407,11 @@ func Xor(a, b Object) (Object, Throwable) {
         if err != nil {
             return nil, Throw{Data: err}
         }
-        return res, nil
+        if res != nil {
+            return res, nil
+        }
     }
-    return nil, nil
+    return nil, NewError(fmt.Sprintf("Can't use '?' on '%s' and '%s'", a.Class().Name, b.Class().Name))
 }
 
 type Negable interface {
