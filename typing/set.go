@@ -25,7 +25,7 @@ func (o Set) ToString() string {
 }
 
 func (o Set) Class() Class {
-	return NewNativeClass("set", Properties{})
+	return NewNativeClass("set", Properties{lengthS: length})
 }
 
 func (o Set) Contains(value Object) (Object, Throwable) {
@@ -42,4 +42,8 @@ func (o Set) Append(value Object) Object {
 		return nil
 	}
 	return Error{fmt.Sprintf("'%s' is not hashable", value.Class().Name)}
+}
+
+func (o Set) Length() int {
+	return len(o.Values)
 }

@@ -21,7 +21,7 @@ func (o Tuple) ToString() string {
 }
 
 func (o Tuple) Class() Class {
-	return NewNativeClass("tuple", Properties{})
+	return NewNativeClass("tuple", Properties{lengthS: length})
 }
 
 func (o Tuple) Eq(other Object) (Object, Throwable) {
@@ -93,4 +93,8 @@ func (o Tuple) Contains(value Object) (Object, Throwable) {
 	}
 
 	return Bool{false}, nil
+}
+
+func (o Tuple) Length() int {
+	return len(o.Values)
 }

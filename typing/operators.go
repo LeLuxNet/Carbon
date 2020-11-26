@@ -449,3 +449,7 @@ type PropertyGettable interface {
 type PropertySettable interface {
     SetProperty(name string, object Object) Object
 }
+
+type LengthGettable interface {
+    Length() int
+}

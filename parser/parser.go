@@ -734,6 +734,7 @@ func (p *Parser) hMap() (ast.Expression, *errors.SyntaxError) {
 func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 	var values []ast.Expression
 
+	hasComma := false
 	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightParen {
 		val, err := p.expression()
 		if err != nil {
@@ -745,6 +746,7 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 		if !p.match(token.Comma) {
 			break
 		}
+		hasComma = true
 	}
 
 	if len(p.Tokens) > p.Position+1 && p.Tokens[p.Position+1].Type == token.Arrow {
@@ -773,7 +775,7 @@ func (p *Parser) tuple() (ast.Expression, *errors.SyntaxError) {
 		}
 
 		return ast.LambdaExpression{Data: typing.ParamData{Params: params}, Body: body}, nil
-	} else if len(values) == 1 {
+	} else if len(values) == 1 && !hasComma {
 		// Grouping expression
 		err := p.consume(token.RightParen, "Expect ')' after expression")
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 	"github.com/leluxnet/carbon/typing"
 )
 
-var _ typing.Object = Getter{}
+var _ typing.Getter = Getter{}
 
 type Getter struct {
 	Name string
@@ -14,7 +14,7 @@ type Getter struct {
 	Env  *env.Env
 }
 
-func (o Getter) Call(this typing.Object, file *typing.File) typing.Throwable {
+func (o Getter) Call(this typing.Object, file *typing.File) (typing.Object, typing.Throwable) {
 	e := env.NewEnclosedEnv(o.Env)
 
 	if this != nil {
@@ -22,7 +22,11 @@ func (o Getter) Call(this typing.Object, file *typing.File) typing.Throwable {
 	}
 
 	_, err := evalStmt(o.Stmt, e, file)
-	return err
+	if ret, ok := err.(typing.Return); ok {
+		return ret.Data, nil
+	} else {
+		return nil, err
+	}
 }
 
 func (o Getter) ToString() string {

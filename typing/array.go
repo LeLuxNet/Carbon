@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+var lengthS = "length"
+var length = BGetter{
+	Name: lengthS,
+	Cal: func(this Object, file *File) (Object, Throwable) {
+		return Int{big.NewInt(int64(this.(LengthGettable).Length()))}, nil
+	},
+}
+
 var _ Object = Array{}
 
 type Array struct {
@@ -22,7 +30,7 @@ func (o Array) ToString() string {
 }
 
 func (o Array) Class() Class {
-	return NewNativeClass("array", Properties{})
+	return NewNativeClass("array", Properties{lengthS: length})
 }
 
 func (o Array) Eq(other Object) (Object, Throwable) {
@@ -112,6 +120,10 @@ func (o Array) Contains(value Object) (Object, Throwable) {
 func (o Array) Append(value Object) Object {
 	o.Values = append(o.Values, value)
 	return nil
+}
+
+func (o Array) Length() int {
+	return len(o.Values)
 }
 
 func resolveIntIndex(l int, index Int) (int64, Object) {

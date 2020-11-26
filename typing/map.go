@@ -30,7 +30,7 @@ func (o Map) ToString() string {
 }
 
 func (o Map) Class() Class {
-	return NewNativeClass("map", Properties{})
+	return NewNativeClass("map", Properties{lengthS: length})
 }
 
 func (o Map) SetIndex(key, value Object) Object {
@@ -50,4 +50,8 @@ func (o Map) GetIndex(key Object) (Object, Object) {
 		}
 	}
 	return nil, Error{fmt.Sprintf("'%s' is not hashable", key.Class().Name)}
+}
+
+func (o Map) Length() int {
+	return len(o.Items)
 }

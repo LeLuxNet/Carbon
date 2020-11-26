@@ -407,7 +407,10 @@ func evalSet(expr ast.SetExpression, e *env.Env, file *typing.File) (typing.Obje
 			return nil, err
 		}
 
-		res.Append(val)
+		err2 := res.Append(val)
+		if err2 != nil {
+			return nil, typing.Throw{Data: err2}
+		}
 	}
 
 	return res, nil
@@ -597,27 +600,22 @@ func evalSProperty(expr ast.SetPropertyStatement, e *env.Env, file *typing.File)
 }
 
 func getProperty(o typing.Object, name string, file *typing.File) (typing.Object, typing.Throwable) {
+	var p typing.Object
+	var err typing.Object
 	if o2, ok := o.(typing.PropertyGettable); ok {
-		p, err := o2.GetProperty(name)
+		p, err = o2.GetProperty(name)
 		if err != nil {
 			return nil, typing.Throw{Data: err}
 		}
-
-		if get, ok := p.(Getter); ok {
-			res := get.Call(o, file)
-			if ret, ok := res.(typing.Return); ok {
-				return ret.Data, nil
-			} else {
-				return nil, res
-			}
+	} else {
+		p, ok = o.Class().Properties[name]
+		if !ok {
+			return nil, typing.NewError(fmt.Sprintf("'%s' has no such property '%s'", o.ToString(), name))
 		}
-
-		return p, nil
 	}
 
-	p, ok := o.Class().Properties[name]
-	if !ok {
-		return nil, typing.NewError(fmt.Sprintf("'%s' has no such property '%s'", o.ToString(), name))
+	if get, ok := p.(typing.Getter); ok {
+		return get.Call(o, file)
 	}
 
 	return p, nil
