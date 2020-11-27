@@ -43,6 +43,7 @@ type DoWhileStmt struct {
 }
 
 type FunStmt struct {
+	Annotations
 	Name string
 	Data typing.ParamData
 	Body Statement

@@ -13,10 +13,11 @@ const (
 	LeftBrace
 	LeftMBrace
 	LeftSBrace
-
 	RightBrace
+
 	LeftBracket
 	RightBracket
+
 	Comma
 	Dot
 	Colon
@@ -62,6 +63,7 @@ const (
 	Pipe
 	PipePipe
 
+	At
 	Circumflex
 	Tilde
 	LeftShift

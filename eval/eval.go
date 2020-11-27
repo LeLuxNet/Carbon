@@ -259,7 +259,9 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, file *typing.File) typing.Thr
 }
 
 func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
-	p := make(typing.Properties, len(expr.Properties))
+	p := make(typing.Properties)
+	sp := make(typing.Properties)
+
 	for _, val := range expr.Properties {
 		switch val := val.(type) {
 		case ast.VarStmt:
@@ -272,18 +274,18 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 			if err != nil {
 				return "", nil, err
 			}
+
 			for name, val := range data {
 				p[name] = val.Val
 			}
 		case ast.FunStmt:
-			fun := Function{
-				Name:  val.Name,
-				PData: val.Data,
-				Stmt:  val.Body,
-				Env:   e,
-			}
+			fun, static := getFun(val, e)
 
-			p[fun.Name] = fun
+			if static {
+				sp[fun.Name] = fun
+			} else {
+				p[fun.Name] = fun
+			}
 		case ast.ConStmt:
 			con := Constructor{
 				Name:  val.Name,
@@ -292,7 +294,7 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 				Env:   e,
 			}
 
-			p[con.Name] = con
+			sp[con.Name] = con
 		case ast.GetterStmt:
 			get := Getter{
 				Name: val.Name,
@@ -309,17 +311,28 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 	class := typing.Class{
 		Name:       expr.Name,
 		Properties: p,
+		Static:     sp,
 	}
 
 	return expr.Name, class, e.Define(expr.Name, class, nil, false, true)
 }
 
-func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {
-	fun := Function{
+func getFun(expr ast.FunStmt, e *env.Env) (Function, bool) {
+	_, static := expr.Annotations["static"]
+
+	return Function{
 		Name:  expr.Name,
 		PData: expr.Data,
 		Stmt:  expr.Body,
 		Env:   e,
+	}, static
+}
+
+func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {
+	fun, static := getFun(expr, e)
+
+	if static {
+		return fun, typing.NewError("Only functions in class can be static")
 	}
 
 	return fun, e.Define(expr.Name, fun, nil, false, true)
@@ -486,7 +499,7 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 			con = callee
 		case typing.Class:
 			this = callee
-			tmp, ok := callee.Properties[""]
+			tmp, ok := callee.Static[""]
 			if !ok {
 				return nil, typing.NewError("Has no nameless constructor")
 			}
@@ -763,5 +776,5 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env, file *typing.File) (typin
 		return typing.Xor(left, right)
 	}
 
-	return nil, typing.NewError("Not implemented")
+	panic("Parsed allowed unknown binary expression type")
 }

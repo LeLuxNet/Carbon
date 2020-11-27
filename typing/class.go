@@ -13,6 +13,7 @@ type Properties = map[string]Object
 type Class struct {
 	Name string
 	Properties
+	Static Properties
 }
 
 func NewNativeClass(name string, properties Properties) Class {
@@ -20,7 +21,7 @@ func NewNativeClass(name string, properties Properties) Class {
 	properties["toString"] = toString
 	properties["Class"] = class
 
-	return Class{Name: name, Properties: properties}
+	return Class{Name: name, Properties: properties, Static: Properties{}}
 }
 
 func (o Class) ToString() string {
@@ -53,7 +54,7 @@ func (o Class) IsInstance(other Object) bool {
 }
 
 func (o Class) GetProperty(name string) (Object, Object) {
-	if res, ok := o.Properties[name]; ok {
+	if res, ok := o.Static[name]; ok {
 		return res, nil
 	}
 	return nil, AttributeError{Name: name}

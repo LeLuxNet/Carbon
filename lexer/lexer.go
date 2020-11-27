@@ -206,6 +206,8 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		} else {
 			tok = token.Pipe
 		}
+	case '@':
+		tok = token.At
 	case '^':
 		tok = token.Circumflex
 	case '~':

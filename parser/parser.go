@@ -36,9 +36,12 @@ func (p *Parser) statement() (ast.Statement, *errors.SyntaxError) {
 }
 
 func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
-	var res ast.Statement
-	var err *errors.SyntaxError
+	a, err := p.annotation()
+	if err != nil {
+		return nil, err
+	}
 
+	var res ast.Statement
 	if p.match(token.Var) {
 		res, err = p.varStmt(false)
 	} else if p.match(token.Val) {
@@ -52,7 +55,7 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 	} else if p.match(token.Class) {
 		return p.classStmt()
 	} else if p.match(token.Fun) {
-		return p.funStmt("function")
+		return p.funStmt("function", a)
 	} else if p.match(token.Return) {
 		res, err = p.returnStmt()
 	} else if p.match(token.Break) {
@@ -323,8 +326,12 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 
 	var props []ast.Statement
 	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		a, err := p.annotation()
+		if err != nil {
+			return nil, err
+		}
+
 		var val ast.Statement
-		var err *errors.SyntaxError
 		if p.match(token.Val) || p.match(token.Var) {
 			val, err = p.varStmt(p.previous().Type == token.Val)
 			if err != nil {
@@ -333,7 +340,7 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 
 			err = p.consumeSemi()
 		} else if p.match(token.Fun) {
-			val, err = p.funStmt("method")
+			val, err = p.funStmt("method", a)
 		} else if p.match(token.Con) {
 			val, err = p.conStmt()
 		} else if p.match(token.Get) {
@@ -357,7 +364,21 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 	return ast.ClassStmt{Name: name, Properties: props}, nil
 }
 
-func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
+func (p *Parser) annotation() (ast.Annotations, *errors.SyntaxError) {
+	var res = make(ast.Annotations)
+	for p.match(token.At) {
+		err := p.consume(token.Identifier, "Expect annotation name")
+		if err != nil {
+			return nil, err
+		}
+		name := p.previous().Literal
+
+		res[name] = struct{}{}
+	}
+	return res, nil
+}
+
+func (p *Parser) funStmt(t string, a ast.Annotations) (ast.Statement, *errors.SyntaxError) {
 	err := p.consume(token.Identifier, fmt.Sprintf("Expect %s name", t))
 	if err != nil {
 		return nil, err
@@ -377,9 +398,10 @@ func (p *Parser) funStmt(t string) (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.FunStmt{
-		Name: name,
-		Data: typing.ParamData{Params: params},
-		Body: body,
+		Annotations: a,
+		Name:        name,
+		Data:        typing.ParamData{Params: params},
+		Body:        body,
 	}, nil
 }
 
