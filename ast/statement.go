@@ -15,6 +15,7 @@ type DeconData struct {
 }
 
 type VarStmt struct {
+	Annotations
 	Names map[string]DeconData
 	Expr  Expression
 	Const bool

@@ -92,7 +92,8 @@ func evalExpression(expr ast.Expression, e *env.Env, file *typing.File) (typing.
 	return typing.Null{}, nil
 }
 
-func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
+func getVar(expr ast.VarStmt, e *env.Env, file *typing.File) (map[string]DeconRes, bool, typing.Throwable) {
+	_, static := expr.Annotations["static"]
 	var err typing.Throwable
 
 	var val typing.Object
@@ -101,13 +102,22 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 	} else {
 		val, err = evalExpression(expr.Expr, e, file)
 		if err != nil {
-			return err
+			return nil, false, err
 		}
 	}
 
 	data, err := deconstruct(val, expr.Names, e, file)
+	return data, static, err
+}
+
+func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
+	data, static, err := getVar(expr, e, file)
 	if err != nil {
 		return err
+	}
+
+	if static {
+		return typing.NewError("Only class fields can be static")
 	}
 
 	for name, val := range data {
@@ -262,15 +272,17 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 	p := make(typing.Properties)
 	sp := make(typing.Properties)
 
+	var staticProps []ast.Statement
 	for _, val := range expr.Properties {
 		switch val := val.(type) {
 		case ast.VarStmt:
-			o, err := evalExpression(val.Expr, e, file)
-			if err != nil {
-				return "", nil, err
+			_, static := val.Annotations["static"]
+			if static {
+				staticProps = append(staticProps, val)
+				continue
 			}
 
-			data, err := deconstruct(o, val.Names, e, file)
+			data, _, err := getVar(val, e, file)
 			if err != nil {
 				return "", nil, err
 			}
@@ -279,6 +291,12 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 				p[name] = val.Val
 			}
 		case ast.FunStmt:
+			_, static := val.Annotations["static"]
+			if static {
+				staticProps = append(staticProps, val)
+				continue
+			}
+
 			fun, static := getFun(val, e)
 
 			if static {
@@ -314,7 +332,29 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 		Static:     sp,
 	}
 
-	return expr.Name, class, e.Define(expr.Name, class, nil, false, true)
+	err := e.Define(expr.Name, class, nil, false, true)
+	if err != nil {
+		return "", nil, err
+	}
+
+	for _, val := range staticProps {
+		switch val := val.(type) {
+		case ast.VarStmt:
+			data, _, err := getVar(val, e, file)
+			if err != nil {
+				return "", nil, err
+			}
+
+			for name, val := range data {
+				sp[name] = val.Val
+			}
+		case ast.FunStmt:
+			fun, _ := getFun(val, e)
+			sp[fun.Name] = fun
+		}
+	}
+
+	return expr.Name, class, nil
 }
 
 func getFun(expr ast.FunStmt, e *env.Env) (Function, bool) {

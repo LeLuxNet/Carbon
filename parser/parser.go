@@ -43,9 +43,9 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 
 	var res ast.Statement
 	if p.match(token.Var) {
-		res, err = p.varStmt(false)
+		res, err = p.varStmt(false, a)
 	} else if p.match(token.Val) {
-		res, err = p.varStmt(true)
+		res, err = p.varStmt(true, a)
 	} else if p.match(token.If) {
 		return p.ifStmt()
 	} else if p.match(token.While) {
@@ -196,7 +196,7 @@ func (p *Parser) deconstruction(c bool) (map[string]ast.DeconData, bool, *errors
 	return nil, false, errors.NewSyntaxError(fmt.Sprintf("Expect identifier after '%s'", nameByConst(c)), p.previous())
 }
 
-func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
+func (p *Parser) varStmt(c bool, a ast.Annotations) (ast.Statement, *errors.SyntaxError) {
 	names, hasType, err := p.deconstruction(c)
 	if err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func (p *Parser) varStmt(c bool) (ast.Statement, *errors.SyntaxError) {
 		return nil, errors.NewSyntaxError("Expect type annotation or '='", p.previous())
 	}
 
-	return ast.VarStmt{Names: names, Expr: expr, Const: c}, nil
+	return ast.VarStmt{Annotations: a, Names: names, Expr: expr, Const: c}, nil
 }
 
 func (p *Parser) assignStmt(t token.TokenType) (ast.Statement, *errors.SyntaxError) {
@@ -333,7 +333,7 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 
 		var val ast.Statement
 		if p.match(token.Val) || p.match(token.Var) {
-			val, err = p.varStmt(p.previous().Type == token.Val)
+			val, err = p.varStmt(p.previous().Type == token.Val, a)
 			if err != nil {
 				return nil, err
 			}

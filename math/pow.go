@@ -10,7 +10,7 @@ func Pow(a *big.Float, b *big.Float) *big.Float {
 		return DOne
 	}
 
-	logA := log(a)
+	logA := log(a.Abs(a))
 	return exp(logA.Mul(b, logA))
 }
 

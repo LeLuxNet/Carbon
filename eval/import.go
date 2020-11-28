@@ -3,6 +3,7 @@ package eval
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/leluxnet/carbon/math"
 	"github.com/leluxnet/carbon/typing"
 	"math/big"
 	"os"
@@ -41,7 +42,7 @@ var Internal = typing.Module{Name: "_internal", Items: map[string]typing.Object{
 			Params: []typing.Parameter{
 				{
 					Name: "len",
-					Type: typing.Int{}.Class(),
+					Type: typing.IntClass,
 				},
 			},
 		},
@@ -64,10 +65,47 @@ var Internal = typing.Module{Name: "_internal", Items: map[string]typing.Object{
 			return typing.Return{Data: typing.Int{Value: big.NewInt(time.Now().UnixNano())}}
 		},
 	},
+	"_sleep": typing.BFunction{
+		Name: "_sleep",
+		Dat: typing.ParamData{
+			Params: []typing.Parameter{
+				{
+					Name: "ms",
+					Type: typing.IntClass,
+				},
+			},
+		},
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			ms := params["ms"].(typing.Int).Value.Int64()
+			time.Sleep(time.Duration(ms) * time.Millisecond)
+			return nil
+		},
+	},
+	"_atan2": typing.BFunction{
+		Name: "_atan2",
+		Dat: typing.ParamData{
+			Params: []typing.Parameter{
+				{
+					Name: "y",
+					Type: typing.DoubleClass,
+				},
+				{
+					Name: "x",
+					Type: typing.DoubleClass,
+				},
+			},
+		},
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			y := params["y"].(typing.Double).Value
+			x := params["x"].(typing.Double).Value
+			return typing.Return{Data: typing.Double{Value: math.Atan2(y, x)}}
+		},
+	},
 }}
 
 var importCache = map[string]typing.Module{
 	"_internal": Internal,
+	"_xinput":   XInput,
 }
 
 func AbsPath(relative string) (string, error) {
