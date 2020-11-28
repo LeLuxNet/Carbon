@@ -2,7 +2,6 @@ package ast
 
 import (
 	"github.com/leluxnet/carbon/token"
-	"github.com/leluxnet/carbon/typing"
 )
 
 type Statement interface {
@@ -11,7 +10,7 @@ type Statement interface {
 
 type DeconData struct {
 	Expr Expression
-	T    string
+	T    Type
 }
 
 type VarStmt struct {
@@ -46,13 +45,13 @@ type DoWhileStmt struct {
 type FunStmt struct {
 	Annotations
 	Name string
-	Data typing.ParamData
+	Data ParamData
 	Body Statement
 }
 
 type ConStmt struct {
 	Name string
-	Data typing.ParamData
+	Data ParamData
 	Body Statement
 }
 

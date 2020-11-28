@@ -155,7 +155,7 @@ func (o Bytes) GetIndex(index Object) (Object, Object) {
 		val := big.NewInt(int64(o.Values[i]))
 		return Int{val}, nil
 	}
-	return nil, Error{fmt.Sprintf("'%s' is not of type int", index.ToString())}
+	return nil, Error{fmt.Sprintf("'%s' is not of type_a int", index.ToString())}
 }
 
 func (o Bytes) Contains(value Object) (Object, Throwable) {

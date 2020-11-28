@@ -173,21 +173,42 @@ func (p *Parser) deconstructMap() (map[string]ast.DeconData, *errors.SyntaxError
 	return res, nil
 }
 
+func (p *Parser) type_a() (ast.Type, *errors.SyntaxError) {
+	if p.match(token.LeftBracket) {
+		t, err := p.type_a()
+		if err != nil {
+			return nil, err
+		}
+
+		err = p.consume(token.RightBracket, "Expect ']' after value type")
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.Array{Type: t}, nil
+	} else if p.match(token.Identifier) {
+		name := p.previous().Literal
+
+		return ast.Class{Name: name}, nil
+	}
+	return nil, errors.NewSyntaxError("Expect type annotation after ':'", p.Tokens[p.Position])
+}
+
 func (p *Parser) deconstruction(c bool) (map[string]ast.DeconData, bool, *errors.SyntaxError) {
 	if len(p.Tokens) > p.Position {
 		tok := p.Tokens[p.Position]
 
 		if p.match(token.Identifier) {
-			var t string
+			var t ast.Type
 			if p.match(token.Colon) {
-				err := p.consume(token.Identifier, "Expect identifier as type")
+				var err *errors.SyntaxError
+				t, err = p.type_a()
 				if err != nil {
 					return nil, false, err
 				}
-				t = p.previous().Literal
 			}
 
-			return map[string]ast.DeconData{tok.Literal: {T: t}}, t != "", nil
+			return map[string]ast.DeconData{tok.Literal: {T: t}}, t != nil, nil
 		} else if p.match(token.LeftBrace) {
 			data, err := p.deconstructMap()
 			return data, false, err
@@ -209,7 +230,7 @@ func (p *Parser) varStmt(c bool, a ast.Annotations) (ast.Statement, *errors.Synt
 			return nil, err
 		}
 	} else if !hasType {
-		return nil, errors.NewSyntaxError("Expect type annotation or '='", p.previous())
+		return nil, errors.NewSyntaxError("Expect type_a annotation or '='", p.previous())
 	}
 
 	return ast.VarStmt{Annotations: a, Names: names, Expr: expr, Const: c}, nil
@@ -400,13 +421,13 @@ func (p *Parser) funStmt(t string, a ast.Annotations) (ast.Statement, *errors.Sy
 	return ast.FunStmt{
 		Annotations: a,
 		Name:        name,
-		Data:        typing.ParamData{Params: params},
+		Data:        ast.ParamData{Params: params},
 		Body:        body,
 	}, nil
 }
 
-func (p *Parser) parameters() ([]typing.Parameter, *errors.SyntaxError) {
-	var params []typing.Parameter
+func (p *Parser) parameters() ([]ast.Parameter, *errors.SyntaxError) {
+	var params []ast.Parameter
 	if p.Position < len(p.Tokens) &&
 		p.Tokens[p.Position].Type != token.RightParen {
 		for {
@@ -414,7 +435,18 @@ func (p *Parser) parameters() ([]typing.Parameter, *errors.SyntaxError) {
 			if err != nil {
 				return nil, err
 			}
-			params = append(params, typing.Parameter{Name: p.previous().Literal})
+			name := p.previous().Literal
+
+			var t ast.Type
+			if p.match(token.Colon) {
+				var err *errors.SyntaxError
+				t, err = p.type_a()
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			params = append(params, ast.Parameter{Name: name, Type: t})
 
 			if !p.match(token.Comma) {
 				break
@@ -463,7 +495,7 @@ func (p *Parser) conStmt() (ast.Statement, *errors.SyntaxError) {
 
 	return ast.ConStmt{
 		Name: name,
-		Data: typing.ParamData{Params: params},
+		Data: ast.ParamData{Params: params},
 		Body: body,
 	}, nil
 }

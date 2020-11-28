@@ -20,26 +20,25 @@ func NewEnv() *Env {
 	return &Env{vars: make(map[string]*Variable)}
 }
 
-func (e Env) Declare(name string, class *typing.Class) typing.Throwable {
+func (e Env) Declare(name string, t typing.Type) typing.Throwable {
 	if _, ok := e.vars[name]; ok {
 		return typing.NewError(fmt.Sprintf("Variable '%s' is already declared", name))
 	}
 
-	e.vars[name] = &Variable{Type: class, Value: typing.Null{}, Nullable: true}
+	e.vars[name] = &Variable{Type: t, Value: typing.Null{}, Nullable: true}
 	return nil
 }
 
-func (e Env) Define(name string, object typing.Object, class *typing.Class, nullable bool, constant bool) typing.Throwable {
+func (e Env) Define(name string, object typing.Object, t typing.Type, nullable bool, constant bool) typing.Throwable {
 	if _, ok := e.vars[name]; ok {
 		return typing.NewError(fmt.Sprintf("Variable '%s' is already declared", name))
 	}
 
-	if class == nil {
-		t := object.Class()
-		class = &t
+	if t == nil {
+		t = object.Class()
 	}
 
-	e.vars[name] = &Variable{Type: class, Value: object, Nullable: nullable, Constant: constant}
+	e.vars[name] = &Variable{Type: t, Value: object, Nullable: nullable, Constant: constant}
 	return nil
 }
 
@@ -47,12 +46,12 @@ func (e Env) Set(name string, object typing.Object) typing.Throwable {
 	if v, ok := e.vars[name]; ok {
 		if v.Constant {
 			return typing.NewError(fmt.Sprintf("Variable '%s' is constant and can't be reassigned", name))
-		} else if v.Type.IsInstance(object) || (object.Class().Name == "null" && v.Nullable) {
+		} else if v.Type.Allows(object) || (object.Class().Name == "null" && v.Nullable) {
 			v.Value = object
 			return nil
 		} else {
 			return typing.NewError(fmt.Sprintf("Variable '%s' of type '%s' can't be assigned to '%s'",
-				name, v.Type.Name, object.Class().Name))
+				name, v.Type.TName(), object.Class().Name))
 		}
 	}
 

@@ -30,9 +30,9 @@ func (o Getter) Call(this typing.Object, file *typing.File) (typing.Object, typi
 }
 
 func (o Getter) ToString() string {
-	panic("This should not be called! A getter is not a type")
+	panic("This should not be called! A getter is not a type_a")
 }
 
 func (o Getter) Class() typing.Class {
-	panic("This should not be called! A getter is not a type")
+	panic("This should not be called! A getter is not a type_a")
 }

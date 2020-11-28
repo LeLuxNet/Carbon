@@ -14,9 +14,9 @@ func (o BGetter) Call(this Object, file *File) (Object, Throwable) {
 }
 
 func (o BGetter) ToString() string {
-	panic("This should not be called! A getter is not a type")
+	panic("This should not be called! A getter is not a type_a")
 }
 
 func (o BGetter) Class() Class {
-	panic("This should not be called! A getter is not a type")
+	panic("This should not be called! A getter is not a type_a")
 }

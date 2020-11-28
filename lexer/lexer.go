@@ -212,10 +212,8 @@ func (l *Lexer) scanToken(lastSemi bool) (*token.Token, bool, *errors.SyntaxErro
 		tok = token.Circumflex
 	case '~':
 		tok = token.Tilde
-	case ' ':
+	case ' ', '\t':
 		semi = lastSemi
-	case '\r':
-	case '\t':
 		break
 	case '\n':
 		l.Line++

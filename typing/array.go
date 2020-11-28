@@ -99,7 +99,7 @@ func (o Array) GetIndex(index Object) (Object, Object) {
 		val := o.Values[i]
 		return val, nil
 	}
-	return nil, Error{fmt.Sprintf("'%s' is not of type int", index.ToString())}
+	return nil, Error{fmt.Sprintf("'%s' is not of type_a int", index.ToString())}
 }
 
 func (o Array) Contains(value Object) (Object, Throwable) {

@@ -5,6 +5,7 @@ import (
 	"github.com/leluxnet/carbon/ast"
 	"github.com/leluxnet/carbon/env"
 	"github.com/leluxnet/carbon/token"
+	"github.com/leluxnet/carbon/type_a"
 	"github.com/leluxnet/carbon/typing"
 )
 
@@ -39,7 +40,7 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 		_, _, err := evalClass(stmt, e, file)
 		return nil, err
 	case ast.FunStmt:
-		_, err := evalFun(stmt, e)
+		_, err := evalFun(stmt, e, file)
 		return nil, err
 	case ast.ReturnStmt:
 		return nil, evalReturn(stmt, e, file)
@@ -121,7 +122,7 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 	}
 
 	for name, val := range data {
-		err = e.Define(name, val.Val, val.Class, val.Val == nil, expr.Const)
+		err = e.Define(name, val.Val, val.Type, val.Val == nil, expr.Const)
 		if err != nil {
 			return err
 		}
@@ -131,29 +132,76 @@ func evalVar(expr ast.VarStmt, e *env.Env, file *typing.File) typing.Throwable {
 }
 
 type DeconRes struct {
-	Val   typing.Object
-	Class *typing.Class
+	Val  typing.Object
+	Type typing.Type
+}
+
+func fromAstType(t ast.Type, e *env.Env) (typing.Type, typing.Throwable) {
+	switch t := t.(type) {
+	case ast.Class:
+		cl, err := e.Get(t.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		class, ok := cl.(typing.Class)
+		if !ok {
+			return nil, typing.NewError("Type annotation can't be an object")
+		}
+
+		return class, nil
+	case ast.Array:
+		val, err := fromAstType(t.Type, e)
+		if err != nil {
+			return nil, err
+		}
+		return type_a.Array{Type: val}, nil
+	case ast.Map:
+		key, err := fromAstType(t.Key, e)
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := fromAstType(t.Value, e)
+		if err != nil {
+			return nil, err
+		}
+
+		return type_a.Map{Key: key, Value: val}, nil
+	case ast.Set:
+		val, err := fromAstType(t.Type, e)
+		if err != nil {
+			return nil, err
+		}
+		return type_a.Set{Type: val}, nil
+	case ast.Tuple:
+		var res []typing.Type
+		for _, v := range t.Values {
+			val, err := fromAstType(v, e)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, val)
+		}
+		return type_a.Tuple{Values: res}, nil
+	}
+	panic("Parser let some a unknown type annotation through")
 }
 
 func deconstruct(val typing.Object, names map[string]ast.DeconData, e *env.Env, file *typing.File) (map[string]DeconRes, typing.Throwable) {
 	res := make(map[string]DeconRes, len(names))
 	for name, prop := range names {
-		var class *typing.Class
-		if prop.T != "" {
-			cl, err := e.Get(prop.T)
+		var t typing.Type
+		if prop.T != nil {
+			var err typing.Throwable
+			t, err = fromAstType(prop.T, e)
 			if err != nil {
 				return nil, err
-			}
-
-			if cl, ok := cl.(typing.Class); ok {
-				class = &cl
-			} else {
-				return nil, typing.NewError("Type annotation has to be a class")
 			}
 		}
 
 		if prop.Expr == nil {
-			res[name] = DeconRes{val, class}
+			res[name] = DeconRes{val, t}
 		} else {
 			p, err := evalExpression(prop.Expr, e, file)
 			if err != nil {
@@ -268,6 +316,44 @@ func evalDoWhile(expr ast.DoWhileStmt, e *env.Env, file *typing.File) typing.Thr
 	return nil
 }
 
+func fromAstParamData(data ast.ParamData, e *env.Env, file *typing.File) (*typing.ParamData, typing.Throwable) {
+	params := make([]typing.Parameter, len(data.Params))
+	var err typing.Throwable
+
+	for i, p := range data.Params {
+		var t typing.Type
+		if p.Type != nil {
+			t, err = fromAstType(p.Type, e)
+		}
+
+		var d typing.Object
+		if p.Default != nil {
+			d, err = evalExpression(p.Default, e, file)
+		}
+
+		params[i] = typing.Parameter{
+			Name:    p.Name,
+			Type:    t,
+			Default: d,
+		}
+	}
+
+	var r typing.Type
+	if data.Return != nil {
+		r, err = fromAstType(data.Return, e)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &typing.ParamData{
+		Params: params,
+		Args:   data.Args,
+		KwArgs: data.KwArgs,
+		Return: r,
+	}, nil
+}
+
 func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typing.Object, typing.Throwable) {
 	p := make(typing.Properties)
 	sp := make(typing.Properties)
@@ -297,17 +383,25 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 				continue
 			}
 
-			fun, static := getFun(val, e)
+			fun, static, err := getFun(val, e, file)
+			if err != nil {
+				return "", nil, err
+			}
 
 			if static {
-				sp[fun.Name] = fun
+				sp[fun.Name] = *fun
 			} else {
-				p[fun.Name] = fun
+				p[fun.Name] = *fun
 			}
 		case ast.ConStmt:
+			data, err := fromAstParamData(val.Data, e, file)
+			if err != nil {
+				return "", nil, err
+			}
+
 			con := Constructor{
 				Name:  val.Name,
-				PData: val.Data,
+				PData: *data,
 				Stmt:  val.Body,
 				Env:   e,
 			}
@@ -349,7 +443,10 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 				sp[name] = val.Val
 			}
 		case ast.FunStmt:
-			fun, _ := getFun(val, e)
+			fun, _, err := getFun(val, e, file)
+			if err != nil {
+				return "", nil, err
+			}
 			sp[fun.Name] = fun
 		}
 	}
@@ -357,19 +454,27 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 	return expr.Name, class, nil
 }
 
-func getFun(expr ast.FunStmt, e *env.Env) (Function, bool) {
+func getFun(expr ast.FunStmt, e *env.Env, file *typing.File) (*Function, bool, typing.Throwable) {
 	_, static := expr.Annotations["static"]
 
-	return Function{
+	data, err := fromAstParamData(expr.Data, e, file)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return &Function{
 		Name:  expr.Name,
-		PData: expr.Data,
+		PData: *data,
 		Stmt:  expr.Body,
 		Env:   e,
-	}, static
+	}, static, nil
 }
 
-func evalFun(expr ast.FunStmt, e *env.Env) (Function, typing.Throwable) {
-	fun, static := getFun(expr, e)
+func evalFun(expr ast.FunStmt, e *env.Env, file *typing.File) (*Function, typing.Throwable) {
+	fun, static, err := getFun(expr, e, file)
+	if err != nil {
+		return nil, err
+	}
 
 	if static {
 		return fun, typing.NewError("Only functions in class can be static")
@@ -397,11 +502,11 @@ func evalExport(expr ast.ExportStmt, e *env.Env, file *typing.File) typing.Throw
 		file.Props[name] = class
 		return nil
 	case ast.FunStmt:
-		fun, err := evalFun(body, e)
+		fun, err := evalFun(body, e, file)
 		if err != nil {
 			return err
 		}
-		file.Props[body.Name] = fun
+		file.Props[body.Name] = *fun
 		return nil
 	case ast.ExpressionStmt:
 		if expr, ok := body.Expr.(ast.VariableExpression); ok {
@@ -575,6 +680,10 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 				object, err := evalExpression(expr.Args[i], e, file)
 				if err != nil {
 					return nil, err
+				}
+
+				if arg.Type != nil && !arg.Type.Allows(object) {
+					return nil, typing.NewError(fmt.Sprintf("Type error: Expect '%s', got '%s'", arg.Type.TName(), object.Class().Name))
 				}
 
 				params[arg.Name] = object
@@ -816,5 +925,5 @@ func evalBinary(expr ast.BinaryExpression, e *env.Env, file *typing.File) (typin
 		return typing.Xor(left, right)
 	}
 
-	panic("Parsed allowed unknown binary expression type")
+	panic("Parsed allowed unknown binary expression type_a")
 }

@@ -7,13 +7,13 @@ type Callable interface {
 
 type Parameter struct {
 	Name    string
-	Type    Class
+	Type    Type
 	Default Object
 }
 
 type ParamData struct {
-	Params     []Parameter
-	Args       string
-	KwArgs     string
-	ReturnType Class
+	Params []Parameter
+	Args   string
+	KwArgs string
+	Return Type
 }

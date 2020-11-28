@@ -25,7 +25,7 @@ func (o Constructor) Const(this typing.Object, params map[string]typing.Object, 
 
 	for _, param := range o.PData.Params {
 		val, _ := params[param.Name]
-		e.Define(param.Name, val, &param.Type, false, false)
+		e.Define(param.Name, val, param.Type, false, false)
 	}
 
 	if o.PData.Args != "" {

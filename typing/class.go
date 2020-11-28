@@ -59,3 +59,11 @@ func (o Class) GetProperty(name string) (Object, Object) {
 	}
 	return nil, AttributeError{Name: name}
 }
+
+func (o Class) Allows(other Object) bool {
+	return o.IsInstance(other)
+}
+
+func (o Class) TName() string {
+	return o.Name
+}
