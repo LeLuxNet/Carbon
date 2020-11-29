@@ -414,7 +414,33 @@ func evalClass(expr ast.ClassStmt, e *env.Env, file *typing.File) (string, typin
 				Env:  e,
 			}
 
-			p[get.Name] = get
+			if v, ok := p[get.Name]; ok {
+				x := v.(typing.GSetter)
+				x.Getter = get
+				p[get.Name] = x
+			} else {
+				p[get.Name] = typing.GSetter{Getter: get}
+			}
+		case ast.SetterStmt:
+			params, err := fromAstParamData(ast.ParamData{Params: []ast.Parameter{val.Param}}, e, file)
+			if err != nil {
+				return "", nil, err
+			}
+
+			set := Setter{
+				Name:  val.Name,
+				Param: params.Params[0],
+				Stmt:  val.Body,
+				Env:   e,
+			}
+
+			if v, ok := p[set.Name]; ok {
+				x := v.(typing.GSetter)
+				x.Setter = set
+				p[set.Name] = x
+			} else {
+				p[set.Name] = typing.GSetter{Setter: set}
+			}
 		default:
 			panic("Parser allowed unknown statement inside a class")
 		}
@@ -804,7 +830,7 @@ func evalSProperty(expr ast.SetPropertyStatement, e *env.Env, file *typing.File)
 		return err
 	}
 
-	return setProperty(target, expr.Name, o)
+	return setProperty(target, expr.Name, o, file)
 }
 
 func getProperty(o typing.Object, name string, file *typing.File) (typing.Object, typing.Throwable) {
@@ -822,20 +848,25 @@ func getProperty(o typing.Object, name string, file *typing.File) (typing.Object
 		}
 	}
 
-	if get, ok := p.(typing.Getter); ok {
-		return get.Call(o, file)
+	if get, ok := p.(typing.GSetter); ok {
+		return get.Get(o, file)
 	}
 
 	return p, nil
 }
 
-func setProperty(o typing.Object, name string, val typing.Object) typing.Throwable {
+func setProperty(o typing.Object, name string, val typing.Object, file *typing.File) typing.Throwable {
 	if o, ok := o.(typing.PropertySettable); ok {
-		err := o.SetProperty(name, val)
+		err := o.SetProperty(name, val, file)
 		if err != nil {
 			return typing.Throw{Data: err}
 		}
 		return nil
+	}
+
+	old := o.Class().Properties[name]
+	if old, ok := old.(typing.GSetter); ok {
+		return old.Set(o, val, file)
 	}
 
 	o.Class().Properties[name] = val

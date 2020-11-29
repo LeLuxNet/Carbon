@@ -366,6 +366,8 @@ func (p *Parser) classStmt() (ast.Statement, *errors.SyntaxError) {
 			val, err = p.conStmt()
 		} else if p.match(token.Get) {
 			val, err = p.getStmt()
+		} else if p.match(token.Set) {
+			val, err = p.setStmt()
 		} else {
 			return nil, errors.NewSyntaxError("Only val, var, fun and get are allow in classes", p.Tokens[p.Position])
 		}
@@ -472,6 +474,51 @@ func (p *Parser) getStmt() (ast.Statement, *errors.SyntaxError) {
 	return ast.GetterStmt{
 		Name: name,
 		Body: body,
+	}, nil
+}
+
+func (p *Parser) setStmt() (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.Identifier, "Expect setter name")
+	if err != nil {
+		return nil, err
+	}
+	name := p.previous().Literal
+
+	err = p.consume(token.LeftParen, "Expect '(' after getter name")
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(token.Identifier, "Expect parameter name")
+	if err != nil {
+		return nil, err
+	}
+	paramName := p.previous().Literal
+
+	var t ast.Type
+	if p.match(token.Colon) {
+		var err *errors.SyntaxError
+		t, err = p.type_a()
+		if err != nil {
+			return nil, err
+		}
+	}
+	param := ast.Parameter{Name: paramName, Type: t}
+
+	err = p.consume(token.RightParen, "Expect ')' after parameter")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.SetterStmt{
+		Name:  name,
+		Param: param,
+		Body:  body,
 	}, nil
 }
 

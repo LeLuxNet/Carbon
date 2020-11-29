@@ -48,8 +48,16 @@ func (o Instance) GetProperty(name string) (Object, Object) {
 	}
 }
 
-func (o Instance) SetProperty(name string, object Object) Object {
-	if _, ok := o.Clazz.Properties[name]; ok {
+func (o Instance) SetProperty(name string, object Object, file *File) Object {
+	if val, ok := o.Clazz.Properties[name]; ok {
+		if val, ok := val.(GSetter); ok {
+			err := val.Set(o, object, file)
+			if err != nil {
+				return err.TData()
+			} else {
+				return nil
+			}
+		}
 		o.Fields[name] = object
 		return nil
 	}

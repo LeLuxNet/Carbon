@@ -60,6 +60,12 @@ type GetterStmt struct {
 	Body Statement
 }
 
+type SetterStmt struct {
+	Name  string
+	Param Parameter
+	Body  Statement
+}
+
 type ClassStmt struct {
 	Name       string
 	Properties []Statement
@@ -100,6 +106,7 @@ func (s ClassStmt) astStatement()            {}
 func (s FunStmt) astStatement()              {}
 func (s ConStmt) astStatement()              {}
 func (s GetterStmt) astStatement()           {}
+func (s SetterStmt) astStatement()           {}
 func (s ReturnStmt) astStatement()           {}
 func (s BreakStmt) astStatement()            {}
 func (s ContinueStmt) astStatement()         {}

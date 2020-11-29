@@ -14,6 +14,7 @@ var Keywords = map[string]struct {
 	"class": {Class, false},
 	"fun":   {Fun, false},
 	"get":   {Get, false},
+	"set":   {Set, false},
 	"con":   {Con, false},
 	"new":   {New, false},
 

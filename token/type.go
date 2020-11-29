@@ -90,6 +90,7 @@ const (
 	Class
 	Fun
 	Get
+	Set
 	Con
 	New
 

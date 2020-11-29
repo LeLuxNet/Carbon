@@ -7,6 +7,7 @@ import (
 )
 
 var _ typing.Getter = Getter{}
+var _ typing.Setter = Setter{}
 
 type Getter struct {
 	Name string
@@ -14,7 +15,7 @@ type Getter struct {
 	Env  *env.Env
 }
 
-func (o Getter) Call(this typing.Object, file *typing.File) (typing.Object, typing.Throwable) {
+func (o Getter) Get(this typing.Object, file *typing.File) (typing.Object, typing.Throwable) {
 	e := env.NewEnclosedEnv(o.Env)
 
 	if this != nil {
@@ -29,10 +30,22 @@ func (o Getter) Call(this typing.Object, file *typing.File) (typing.Object, typi
 	}
 }
 
-func (o Getter) ToString() string {
-	panic("This should not be called! A getter is not a type_a")
+type Setter struct {
+	Name  string
+	Param typing.Parameter
+	Stmt  ast.Statement
+	Env   *env.Env
 }
 
-func (o Getter) Class() typing.Class {
-	panic("This should not be called! A getter is not a type_a")
+func (o Setter) Set(this, val typing.Object, file *typing.File) typing.Throwable {
+	e := env.NewEnclosedEnv(o.Env)
+
+	if this != nil {
+		e.Define("this", this, nil, false, true)
+	}
+
+	e.Define(o.Param.Name, val, o.Param.Type, false, true)
+
+	_, err := evalStmt(o.Stmt, e, file)
+	return err
 }

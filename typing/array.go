@@ -7,11 +7,11 @@ import (
 )
 
 var lengthS = "length"
-var length = BGetter{
+var length = GSetter{Getter: BGetter{
 	Name: lengthS,
 	Cal: func(this Object, file *File) (Object, Throwable) {
 		return Int{big.NewInt(int64(this.(LengthGettable).Length()))}, nil
-	},
+	}},
 }
 
 var _ Object = Array{}

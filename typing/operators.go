@@ -447,7 +447,7 @@ type PropertyGettable interface {
 }
 
 type PropertySettable interface {
-    SetProperty(name string, object Object) Object
+    SetProperty(name string, object Object, file *File) Object
 }
 
 type LengthGettable interface {
