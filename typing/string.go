@@ -97,6 +97,7 @@ var StringClass = NewNativeClass("string", Properties{
 	capitalizeAllS: capitalizeAll,
 	parseIntS:      parseInt,
 	parseDoubleS:   parseDouble,
+	lengthS:        length,
 })
 
 func InitStringClass() {
@@ -168,4 +169,8 @@ func (o String) GetIndex(key Object) (Object, Object) {
 		return Char{chars[i]}, nil
 	}
 	return nil, nil
+}
+
+func (o String) Length() int {
+	return len(o.Value)
 }

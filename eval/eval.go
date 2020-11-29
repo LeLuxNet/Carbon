@@ -636,25 +636,26 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 	var data typing.ParamData
 
 	var fun typing.Callable
-	var con Constructor
+	var con *Constructor
 
 	if expr.New {
 		switch callee := callee.(type) {
 		case Constructor:
-			con = callee
+			con = &callee
+			data = con.PData
 		case typing.Class:
 			this = callee
 			tmp, ok := callee.Static[""]
-			if !ok {
-				return nil, typing.NewError("Has no nameless constructor")
+			if ok {
+				tmpCon := tmp.(Constructor)
+				con = &tmpCon
+				data = con.PData
+			} else {
+				data = typing.ParamData{}
 			}
-
-			con = tmp.(Constructor)
 		default:
 			return nil, typing.NewError("You can only use new to call a constructor")
 		}
-
-		data = con.PData
 	} else {
 		var ok bool
 		fun, ok = callee.(typing.Callable)
@@ -736,7 +737,9 @@ func evalCall(expr ast.CallExpression, e *env.Env, file *typing.File) (typing.Ob
 	if expr.New {
 		class := this.(typing.Class)
 		i := typing.Instance{Clazz: class, Fields: make(map[string]typing.Object), File: file}
-		err = con.Const(i, params, args, kwArgs, file)
+		if con != nil {
+			err = con.Const(i, params, args, kwArgs, file)
+		}
 		return i, nil
 	} else {
 		err = fun.Call(this, params, args, kwArgs, file)

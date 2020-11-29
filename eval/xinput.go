@@ -10,6 +10,10 @@ import (
 var (
 	procXInputGetState *syscall.Proc
 	procXInputSetState *syscall.Proc
+
+	procSetCursorPos *syscall.Proc
+	procGetCursorPos *syscall.Proc
+	procSendInput    *syscall.Proc
 )
 
 type xState struct {
@@ -32,17 +36,50 @@ type xVibration struct {
 	RightMotorSpeed uint16
 }
 
+type point struct {
+	x int32
+	y int32
+}
+
+type input struct {
+	t  uint32
+	mi mouseInput
+}
+
+type mouseInput struct {
+	x           int32
+	y           int32
+	button      int32
+	dwFlags     uint32
+	time        uint32
+	dwExtraInfo uintptr
+}
+
 var XInput = typing.Module{Name: "_xinput", Items: map[string]typing.Object{
 	"_load": typing.BFunction{
 		Name: "_load",
 		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
-			dll, err := syscall.LoadDLL("xinput1_4.dll")
-			defer func() {
-				if err != nil {
-					dll.Release()
-				}
-			}()
+			uDll, err := syscall.LoadDLL("user32.dll")
 			if err != nil {
+				return typing.NewError(err.Error())
+			}
+			defer uDll.Release()
+			procSetCursorPos, err = uDll.FindProc("SetCursorPos")
+			if err != nil {
+				return typing.NewError(err.Error())
+			}
+			procGetCursorPos, err = uDll.FindProc("GetCursorPos")
+			if err != nil {
+				return typing.NewError(err.Error())
+			}
+			procSendInput, err = uDll.FindProc("SendInput")
+			if err != nil {
+				return typing.NewError(err.Error())
+			}
+
+			dll, err := syscall.LoadDLL("xinput1_4.dll")
+			if err != nil {
+				defer dll.Release()
 				dll, err = syscall.LoadDLL("xinput1_3.dll")
 				if err != nil {
 					dll, err = syscall.LoadDLL("xinput9_1_0.dll")
@@ -106,6 +143,56 @@ var XInput = typing.Module{Name: "_xinput", Items: map[string]typing.Object{
 				return nil
 			}
 			return typing.NewError(syscall.Errno(r).Error())
+		},
+	},
+	"_get_cursor": typing.BFunction{
+		Name: "_get_cursor",
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			p := &point{}
+
+			procGetCursorPos.Call(uintptr(unsafe.Pointer(p)))
+			// if r == 0 {
+			t := typing.Tuple{Values: []typing.Object{
+				typing.Int{Value: big.NewInt(int64(p.x))},
+				typing.Int{Value: big.NewInt(int64(p.y))},
+			}}
+			return typing.Return{Data: t}
+			// }
+			// return typing.NewError(syscall.Errno(r).Error())
+		},
+	},
+	"_set_cursor": typing.BFunction{
+		Name: "_set_cursor",
+		Dat: typing.ParamData{Params: []typing.Parameter{
+			{Name: "x", Type: typing.IntClass},
+			{Name: "y", Type: typing.IntClass},
+		}},
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			x := int32(params["x"].(typing.Int).Value.Int64())
+			y := int32(params["y"].(typing.Int).Value.Int64())
+
+			r, _, _ := procSetCursorPos.Call(uintptr(x), uintptr(y))
+			if r == 0 {
+				return nil
+			}
+			return nil // return typing.NewError(syscall.Errno(r).Error())
+		},
+	},
+	"_click": typing.BFunction{
+		Name: "_click",
+		Dat: typing.ParamData{
+			Params: []typing.Parameter{
+				{Name: "data", Type: typing.IntClass},
+				{Name: "flag", Type: typing.IntClass},
+			},
+		},
+		Cal: func(_ typing.Object, params map[string]typing.Object, _ []typing.Object, _ map[string]typing.Object, _ *typing.File) typing.Throwable {
+			dat := int32(params["data"].(typing.Int).Value.Uint64())
+			flag := uint32(params["flag"].(typing.Int).Value.Uint64())
+
+			data := input{t: 0, mi: mouseInput{button: dat, dwFlags: flag}}
+			procSendInput.Call(uintptr(1), uintptr(unsafe.Pointer(&data)), unsafe.Sizeof(data))
+			return nil
 		},
 	},
 }}
