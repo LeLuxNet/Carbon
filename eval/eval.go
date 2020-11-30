@@ -42,6 +42,8 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 	case ast.FunStmt:
 		_, err := evalFun(stmt, e, file)
 		return nil, err
+	case ast.SwitchStmt:
+		return nil, evalSwitch(stmt, e, file)
 	case ast.ReturnStmt:
 		return nil, evalReturn(stmt, e, file)
 	case ast.BreakStmt:
@@ -57,7 +59,7 @@ func evalStmt(stmt ast.Statement, e *env.Env, file *typing.File) (typing.Object,
 	case ast.SetPropertyStatement:
 		return nil, evalSProperty(stmt, e, file)
 	}
-	return nil, nil
+	panic("Parser let a unknown statement through")
 }
 
 func evalExpression(expr ast.Expression, e *env.Env, file *typing.File) (typing.Object, typing.Throwable) {
@@ -89,8 +91,7 @@ func evalExpression(expr ast.Expression, e *env.Env, file *typing.File) (typing.
 	case ast.BinaryExpression:
 		return evalBinary(expr, e, file)
 	}
-
-	return typing.Null{}, nil
+	panic("Parser let a unknown expression through")
 }
 
 func getVar(expr ast.VarStmt, e *env.Env, file *typing.File) (map[string]DeconRes, bool, typing.Throwable) {
@@ -507,6 +508,33 @@ func evalFun(expr ast.FunStmt, e *env.Env, file *typing.File) (*Function, typing
 	}
 
 	return fun, e.Define(expr.Name, fun, nil, false, true)
+}
+
+func evalSwitch(expr ast.SwitchStmt, e *env.Env, file *typing.File) typing.Throwable {
+	val, err := evalExpression(expr.Value, e, file)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range expr.Body {
+		for _, cas := range c.Cases {
+			o, err := evalExpression(cas, e, file)
+			if err != nil {
+				return err
+			}
+
+			eq, err := typing.Eq(val, o)
+			if err != nil {
+				return err
+			}
+
+			if typing.Truthy(eq) {
+				_, err = evalStmt(c.Body, e, file)
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func evalReturn(expr ast.ReturnStmt, e *env.Env, file *typing.File) typing.Throwable {

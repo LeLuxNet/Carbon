@@ -71,6 +71,16 @@ type ClassStmt struct {
 	Properties []Statement
 }
 
+type Case struct {
+	Cases []Expression
+	Body  Statement
+}
+
+type SwitchStmt struct {
+	Value Expression
+	Body  []Case
+}
+
 type ReturnStmt struct {
 	Expr Expression
 }
@@ -107,6 +117,7 @@ func (s FunStmt) astStatement()              {}
 func (s ConStmt) astStatement()              {}
 func (s GetterStmt) astStatement()           {}
 func (s SetterStmt) astStatement()           {}
+func (s SwitchStmt) astStatement()           {}
 func (s ReturnStmt) astStatement()           {}
 func (s BreakStmt) astStatement()            {}
 func (s ContinueStmt) astStatement()         {}

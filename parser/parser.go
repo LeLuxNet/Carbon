@@ -56,6 +56,8 @@ func (p *Parser) semiStatement(semi bool) (ast.Statement, *errors.SyntaxError) {
 		return p.classStmt()
 	} else if p.match(token.Fun) {
 		return p.funStmt("function", a)
+	} else if p.match(token.Switch) {
+		return p.switchStmt()
 	} else if p.match(token.Return) {
 		res, err = p.returnStmt()
 	} else if p.match(token.Break) {
@@ -278,6 +280,68 @@ func (p *Parser) ifStmt() (ast.Statement, *errors.SyntaxError) {
 	}
 
 	return ast.IfStmt{Condition: condition, Then: then, Else: elseBranch}, nil
+}
+
+func (p *Parser) switchStmt() (ast.Statement, *errors.SyntaxError) {
+	err := p.consume(token.LeftParen, "Expect '(' after 'switch'")
+	if err != nil {
+		return nil, err
+	}
+
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(token.RightParen, "Expect ')' after switch value")
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(token.LeftBrace, "Expect '{' after switch header")
+	if err != nil {
+		return nil, err
+	}
+
+	var body []ast.Case
+	for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type != token.RightBrace {
+		var cases []ast.Expression
+		for len(p.Tokens) > p.Position && p.Tokens[p.Position].Type == token.Case {
+			err = p.consume(token.Case, "Expect 'case' in switch body")
+			if err != nil {
+				return nil, err
+			}
+
+			ca, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consume(token.Colon, "Expect ':' after expression in 'case'")
+			if err != nil {
+				return nil, err
+			}
+
+			cases = append(cases, ca)
+		}
+
+		cBody, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+
+		body = append(body, ast.Case{
+			Cases: cases,
+			Body:  cBody,
+		})
+	}
+
+	err = p.consume(token.RightBrace, "Expect '}' after switch body")
+	if err != nil {
+		return nil, err
+	}
+
+	return ast.SwitchStmt{Value: value, Body: body}, nil
 }
 
 func (p *Parser) whileStmt() (ast.Statement, *errors.SyntaxError) {

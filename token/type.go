@@ -93,6 +93,8 @@ const (
 	Set
 	Con
 	New
+	Switch
+	Case
 
 	Return
 	Break
